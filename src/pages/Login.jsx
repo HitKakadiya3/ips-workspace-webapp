@@ -40,16 +40,21 @@ const Login = () => {
         try {
             const response = await login(formData.email, formData.password);
 
-            // Mock token for now - replace with actual token from response
-            localStorage.setItem('token', 'mock_secure_token_12345');
-            // Store user name for avatar - ideally this comes from the API response
-            // For now, we'll store the email as a fallback or a default name if available
-            // In a real app: localStorage.setItem('userName', response.data.user.name);
-            localStorage.setItem('name', response.data.user.name);
+            // Store authentication token
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+            }
+
+            // Store user information for dashboard
+            if (response.data.user) {
+                localStorage.setItem('userId', response.data.user.id || response.data.user._id);
+                localStorage.setItem('name', response.data.user.name);
+                localStorage.setItem('email', response.data.user.email);
+            }
 
             navigate('/dashboard');
-        } catch {
-            setError("Invalid username or password");
+        } catch (err) {
+            setError(err.response?.data?.message || "Invalid username or password");
         } finally {
             setLoading(false);
         }
