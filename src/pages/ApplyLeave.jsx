@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import api from '../services/api';
 import DashboardLayout from '../components/DashboardLayout';
 import { Info, ChevronDown } from 'lucide-react';
@@ -31,10 +31,10 @@ const ApplyLeave = () => {
     );
 
     // fetch leave counts and update state
-    const fetchLeaveCounts = async () => {
+    const fetchLeaveCounts = useCallback(async (year) => {
         try {
             const userId = localStorage.getItem('userId');
-            const res = await api.get(`/api/leaves/${userId}/count`);
+            const res = await api.get(`/api/leaves/${userId}/count?year=${year}`);
             if (res?.data?.success && res.data.data) {
                 const data = res.data.data;
                 const mapped = initialDisplayItems.map(item => ({
@@ -47,11 +47,11 @@ const ApplyLeave = () => {
         } catch (err) {
             console.error('Failed to fetch leave counts', err);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchLeaveCounts();
-    }, []);
+        fetchLeaveCounts(selectedYear); 
+    }, [selectedYear, fetchLeaveCounts]);
 
     const totalLeaves = leaveDetails.reduce((acc, item) => ({
         used: acc.used + item.used,
@@ -108,7 +108,7 @@ const ApplyLeave = () => {
                     hours: '',
                     reason: ''
                 });
-                fetchLeaveCounts();
+                fetchLeaveCounts(selectedYear);
                 // show success modal
                 setSuccessModal({ open: true, message: 'Leave request submitted successfully.' });
             } else {
