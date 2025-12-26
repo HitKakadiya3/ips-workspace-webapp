@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import api from '../services/api';
 import DashboardLayout from '../components/DashboardLayout';
 import { Info, ChevronDown } from 'lucide-react';
 
@@ -29,27 +30,26 @@ const ApplyLeave = () => {
         initialDisplayItems.map(item => ({ type: item.type, used: 0, total: item.total }))
     );
 
-    useEffect(() => {
-        const fetchLeaveCounts = async () => {
-            try {
-                const userId = localStorage.getItem('userId') || '6942550bbaccb92db0ed143d';
-                // lazy import of api instance
-                const api = (await import('../services/api')).default;
-                const res = await api.get(`/api/users/${userId}/leaves/count`);
-                if (res?.data?.success && res.data.data) {
-                    const data = res.data.data;
-                    const mapped = initialDisplayItems.map(item => ({
-                        type: item.type,
-                        used: Number(data[item.key]) || 0,
-                        total: item.total
-                    }));
-                    setLeaveDetails(mapped);
-                }
-            } catch (err) {
-                console.error('Failed to fetch leave counts', err);
+    // fetch leave counts and update state
+    const fetchLeaveCounts = async () => {
+        try {
+            const userId = localStorage.getItem('userId');
+            const res = await api.get(`/api/leaves/${userId}/count`);
+            if (res?.data?.success && res.data.data) {
+                const data = res.data.data;
+                const mapped = initialDisplayItems.map(item => ({
+                    type: item.type,
+                    used: Number(data[item.key]) || 0,
+                    total: item.total
+                }));
+                setLeaveDetails(mapped);
             }
-        };
+        } catch (err) {
+            console.error('Failed to fetch leave counts', err);
+        }
+    };
 
+    useEffect(() => {
         fetchLeaveCounts();
     }, []);
 
@@ -66,14 +66,83 @@ const ApplyLeave = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const [submitting, setSubmitting] = useState(false);
+    const [successModal, setSuccessModal] = useState({ open: false, message: '' });
+
+    const mapCategoryToLeaveType = (category) => {
+        if (!category) return '';
+        const c = category.toLowerCase();
+        if (c.includes('personal')) return 'Personal';
+        if (c.includes('unpaid')) return 'Unpaid';
+        if (c.includes('appreciation') || c.includes('c-off') || c.includes('ad')) return 'Ad-hoc';
+        if (c.includes('sick')) return 'Sick';
+        if (c.includes('casual')) return 'Casual';
+        return 'Other';
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
+        if (submitting) return;
+        setSubmitting(true);
+
+        try {
+            const userId = localStorage.getItem('userId') || '6942550bbaccb92db0ed143d';
+            const leaveType = mapCategoryToLeaveType(formData.category);
+            const payload = {
+                leaveType,
+                startDate: formData.startDate,
+                endDate: formData.duration === 'multiple' ? formData.endDate : formData.startDate,
+                reason: formData.reason,
+                year: new Date(formData.startDate).getFullYear(),
+                hours: formData.duration === 'hours' ? formData.hours : undefined
+            };
+
+            const res = await api.post(`/api/leaves/${userId}`, payload);
+            if (res?.data?.success) {
+                console.log('Leave saved', res.data.data);
+                setFormData({
+                    category: '',
+                    duration: 'single',
+                    startDate: '',
+                    endDate: '',
+                    hours: '',
+                    reason: ''
+                });
+                fetchLeaveCounts();
+                // show success modal
+                setSuccessModal({ open: true, message: 'Leave request submitted successfully.' });
+            } else {
+                console.error('Failed to save leave', res?.data);
+                alert('Failed to submit leave');
+            }
+        } catch (err) {
+            console.error('Submit error', err);
+            alert('Error submitting leave');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
         <DashboardLayout>
             <div className="flex flex-col lg:flex-row gap-6">
+                {successModal.open && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-black/40" onClick={() => setSuccessModal({ open: false, message: '' })} />
+                        <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6 z-10">
+                            <h4 className="text-lg font-semibold text-gray-800">Success</h4>
+                            <p className="text-sm text-gray-600 mt-2">{successModal.message}</p>
+                            <div className="mt-4 text-right">
+                                <button
+                                    onClick={() => setSuccessModal({ open: false, message: '' })}
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                                >
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Left Section - Form */}
                 <div className="flex-1">
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
