@@ -22,25 +22,63 @@ import {
     ChevronDown
 } from 'lucide-react';
 
-const SidebarItem = ({ icon: Icon, label, to = "#", active = false, hasSubmenu = false, collapsed = false }) => (
-    <Link to={to} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-4'} py-3 cursor-pointer transition-colors ${active ? 'bg-indigo-600 text-white border-l-4 border-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+
+const SidebarItem = ({ icon: Icon, label, to = "#", active = false, hasSubmenu = false, collapsed = false, isOpen = false, onClick }) => (
+    <div
+        onClick={onClick}
+        className={`flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-4'} py-3 cursor-pointer transition-colors ${active ? 'bg-indigo-600 text-white border-l-4 border-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+    >
         <div className={`flex items-center gap-3 ${active ? '-ml-1' : ''}`}>
             <Icon size={20} />
             {!collapsed && <span className="text-sm font-medium">{label}</span>}
         </div>
-        {!collapsed && hasSubmenu && <ChevronRight size={16} className="text-gray-500" />}
+        {!collapsed && hasSubmenu && (
+            <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        )}
+    </div>
+);
+
+const SidebarLink = ({ icon: Icon, label, to = "#", active = false, collapsed = false }) => (
+    <Link to={to} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-4'} py-3 cursor-pointer transition-colors ${active ? 'bg-indigo-600 text-white border-l-4 border-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+        <div className={`flex items-center gap-3 ${active ? '-ml-1' : ''}`}>
+            {Icon && <Icon size={20} />}
+            {!collapsed && <span className="text-sm font-medium">{label}</span>}
+        </div>
     </Link>
 );
 
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+const SubMenuItem = ({ label, to, active, collapsed }) => (
+    <Link
+        to={to}
+        className={`flex items-center gap-3 py-2.5 cursor-pointer transition-colors ${collapsed ? 'justify-center px-2' : 'pl-12 pr-4'} ${active ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+    >
+        {!collapsed && (
+            <>
+                <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-indigo-500' : 'bg-gray-600'}`}></span>
+                <span className="text-sm">{label}</span>
+            </>
+        )}
+    </Link>
+);
 
 const DashboardLayout = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [openMenus, setOpenMenus] = useState({ leaveManagement: false });
     const navigate = useNavigate();
     const location = useLocation();
+
+    const toggleMenu = (menu) => {
+        setOpenMenus(prev => ({
+            ...prev,
+            [menu]: !prev[menu]
+        }));
+    };
+
+    const isLeaveManagementActive = location.pathname.startsWith('/leave');
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -84,32 +122,52 @@ const DashboardLayout = ({ children }) => {
                 {/* Menu */}
                 <div className="flex-1 overflow-y-auto py-4 no-scrollbar">
                     <nav className="space-y-0.5">
-                        <SidebarItem
+                        <SidebarLink
                             icon={LayoutDashboard}
                             label="Dashboard"
                             to="/dashboard"
                             active={location.pathname === '/dashboard'}
                             collapsed={isCollapsed}
                         />
-                        <SidebarItem
-                            icon={User}
-                            label="Profile"
-                            to="/profile"
-                            active={location.pathname === '/profile'}
-                            collapsed={isCollapsed}
-                        />
-                        <SidebarItem icon={Calendar} label="Calendar" collapsed={isCollapsed} />
-                        <SidebarItem icon={Briefcase} label="Projects" collapsed={isCollapsed} />
-                        <SidebarItem icon={FileText} label="Document Sharing" collapsed={isCollapsed} />
-                        <SidebarItem icon={Users} label="Attendance" collapsed={isCollapsed} />
+                        <SidebarLink icon={Calendar} label="Calendar" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={Briefcase} label="Projects" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={FileText} label="Document Sharing" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={Users} label="Attendance" to="#" collapsed={isCollapsed} />
                         <SidebarItem icon={Timer} label="Timesheet" hasSubmenu collapsed={isCollapsed} />
                         <SidebarItem icon={Users} label="Client Timesheet" hasSubmenu collapsed={isCollapsed} />
-                        <SidebarItem icon={Plane} label="Leave Management" hasSubmenu collapsed={isCollapsed} />
-                        <SidebarItem icon={Home} label="Work From Home" collapsed={isCollapsed} />
+                        
+                        {/* Leave Management with Submenu */}
+                        <SidebarItem
+                            icon={Plane}
+                            label="Leave Management"
+                            hasSubmenu
+                            collapsed={isCollapsed}
+                            isOpen={openMenus.leaveManagement}
+                            onClick={() => toggleMenu('leaveManagement')}
+                            active={isLeaveManagementActive}
+                        />
+                        {(openMenus.leaveManagement || isLeaveManagementActive) && !isCollapsed && (
+                            <div className="bg-gray-900/50">
+                                <SubMenuItem
+                                    label="Apply Leave"
+                                    to="/leave/apply"
+                                    active={location.pathname === '/leave/apply'}
+                                    collapsed={isCollapsed}
+                                />
+                                <SubMenuItem
+                                    label="Leave Details"
+                                    to="/leave/details"
+                                    active={location.pathname === '/leave/details'}
+                                    collapsed={isCollapsed}
+                                />
+                            </div>
+                        )}
+                        
+                        <SidebarLink icon={Home} label="Work From Home" to="#" collapsed={isCollapsed} />
                         <SidebarItem icon={BarChart2} label="KPI" hasSubmenu collapsed={isCollapsed} />
-                        <SidebarItem icon={Megaphone} label="Announcements" collapsed={isCollapsed} />
-                        <SidebarItem icon={Info} label="Notice and Appreciation" collapsed={isCollapsed} />
-                        <SidebarItem icon={Ticket} label="Tickets" collapsed={isCollapsed} />
+                        <SidebarLink icon={Megaphone} label="Announcements" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={Info} label="Notice and Appreciation" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={Ticket} label="Tickets" to="#" collapsed={isCollapsed} />
                     </nav>
                 </div>
 
@@ -140,7 +198,9 @@ const DashboardLayout = ({ children }) => {
                         </button>
 
                         <h2 className="text-xl font-semibold text-gray-800">
-                            {location.pathname === '/profile' ? 'Profile Details' : 'Dashboard'}
+                            {location.pathname === '/profile' ? 'Profile Details' : 
+                             location.pathname === '/leave/apply' ? 'Apply Leave' :
+                             location.pathname === '/leave/details' ? 'Leave Details' : 'Dashboard'}
                         </h2>
                     </div>
 

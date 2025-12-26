@@ -17,7 +17,7 @@ const StatCard = ({ value, label, subtext, highlightColor = 'blue', isLoading = 
 
     if (isLoading) {
         return (
-            <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full min-h-[140px] animate-pulse">
+            <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full min-h-35 animate-pulse">
                 <div className="h-8 w-20 bg-gray-200 rounded mb-2"></div>
                 <div className="h-3 w-32 bg-gray-200 rounded"></div>
             </div>
@@ -25,7 +25,7 @@ const StatCard = ({ value, label, subtext, highlightColor = 'blue', isLoading = 
     }
 
     return (
-        <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full transition-all hover:shadow-md hover:scale-105 duration-300 min-h-[140px] animate-fadeIn">
+        <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full transition-all hover:shadow-md hover:scale-105 duration-300 min-h-35 animate-fadeIn">
             <h3 className={`text-3xl font-bold ${textColor} mb-2`}>{value || '0'}</h3>
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
             {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
@@ -62,7 +62,6 @@ const Dashboard = () => {
                 }
 
                 const response = await getDashboardData(userId);
-                console.log('Dashboard API Response:', response.data);
                 setDashboardData(response.data);
             } catch (err) {
                 console.error('Error fetching dashboard data:', err);
@@ -78,7 +77,7 @@ const Dashboard = () => {
     if (error) {
         return (
             <DashboardLayout>
-                <div className="flex flex-col items-center justify-center min-h-[400px] animate-fadeIn">
+                <div className="flex flex-col items-center justify-center min-h-100 animate-fadeIn">
                     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
                     <h2 className="text-2xl font-bold text-gray-700 mb-2">Error Loading Dashboard</h2>
                     <p className="text-gray-500 mb-4">{error}</p>
@@ -157,7 +156,7 @@ const Dashboard = () => {
                             </>
                         ) : (
                             <>
-                                <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full hover:shadow-md min-h-[140px] transition-all hover:scale-105 duration-300 animate-fadeIn">
+                                <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full hover:shadow-md min-h-35 transition-all hover:scale-105 duration-300 animate-fadeIn">
                                     <h3 className="text-2xl font-bold text-cyan-500 mb-2 flex items-center justify-center gap-2">
                                         {leaves.personal || '0/0'}
                                         <Info size={16} className="text-gray-400" />
@@ -222,7 +221,7 @@ const Dashboard = () => {
                     {loading ? (
                         <StatCard isLoading={true} />
                     ) : (
-                        <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full hover:shadow-md min-h-[140px] transition-all hover:scale-105 duration-300 animate-fadeIn">
+                        <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full hover:shadow-md min-h-35 transition-all hover:scale-105 duration-300 animate-fadeIn">
                             <div className="space-y-1 mb-2 max-h-20 overflow-y-auto w-full">
                                 {generic.teamOnLeaveToday?.slice(0, 3).map((member, idx) => (
                                     <p key={idx} className="text-orange-500 font-medium text-sm">{member}</p>
@@ -244,7 +243,7 @@ const Dashboard = () => {
                     {loading ? (
                         <StatCard isLoading={true} />
                     ) : (
-                        <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full hover:shadow-md min-h-[140px] transition-all hover:scale-105 duration-300 animate-fadeIn">
+                        <div className="bg-white rounded-xl p-6 shadow-xs border border-gray-100 flex flex-col items-center justify-center text-center h-full hover:shadow-md min-h-35 transition-all hover:scale-105 duration-300 animate-fadeIn">
                             <div className="space-y-1 mb-2 max-h-20 overflow-y-auto w-full">
                                 {generic.teamOnLeaveNext5Days?.slice(0, 3).map((member, idx) => (
                                     <p key={idx} className="text-orange-500 font-medium text-sm">{member}</p>
@@ -402,7 +401,7 @@ const ContentCard = ({ title, children, isLoading = false }) => (
         </div>
         <div className="p-6 flex-1 flex flex-col">
             {isLoading ? (
-                <div className="flex-1 flex items-center justify-center min-h-[100px]">
+                <div className="flex-1 flex items-center justify-center min-h-25">
                     <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
                 </div>
             ) : (
@@ -413,7 +412,7 @@ const ContentCard = ({ title, children, isLoading = false }) => (
 );
 
 const EmptyState = ({ message = "No data found" }) => (
-    <div className="flex-1 flex items-center justify-center min-h-[100px]">
+    <div className="flex-1 flex items-center justify-center min-h-25">
         <p className="text-gray-300 text-lg font-medium">{message}</p>
     </div>
 );
