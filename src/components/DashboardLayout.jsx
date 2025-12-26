@@ -22,7 +22,7 @@ import {
     ChevronDown
 } from 'lucide-react';
 
-const SidebarItem = ({ label, to = "#", active = false, hasSubmenu = false, collapsed = false }) => (
+const SidebarItem = ({ icon: Icon, label, to = "#", active = false, hasSubmenu = false, collapsed = false }) => (
     <Link to={to} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-4'} py-3 cursor-pointer transition-colors ${active ? 'bg-indigo-600 text-white border-l-4 border-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
         <div className={`flex items-center gap-3 ${active ? '-ml-1' : ''}`}>
             <Icon size={20} />
@@ -89,6 +89,13 @@ const DashboardLayout = ({ children }) => {
                             label="Dashboard"
                             to="/dashboard"
                             active={location.pathname === '/dashboard'}
+                            collapsed={isCollapsed}
+                        />
+                        <SidebarItem
+                            icon={User}
+                            label="Profile"
+                            to="/profile"
+                            active={location.pathname === '/profile'}
                             collapsed={isCollapsed}
                         />
                         <SidebarItem icon={Calendar} label="Calendar" collapsed={isCollapsed} />
