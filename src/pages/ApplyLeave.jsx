@@ -34,7 +34,7 @@ const ApplyLeave = () => {
     const fetchLeaveCounts = useCallback(async (year) => {
         try {
             const userId = localStorage.getItem('userId');
-            const res = await api.get(`/api/leaves/${userId}/count?year=${year}`);
+            const res = await api.get(`/api/leaves/user/${userId}/count?year=${year}`);
             if (res?.data?.success && res.data.data) {
                 const data = res.data.data;
                 const mapped = initialDisplayItems.map(item => ({
@@ -97,7 +97,7 @@ const ApplyLeave = () => {
                 hours: formData.duration === 'hours' ? formData.hours : undefined
             };
 
-            const res = await api.post(`/api/leaves/${userId}`, payload);
+            const res = await api.post(`/api/leaves/user/${userId}`, payload);
             if (res?.data?.success) {
                 console.log('Leave saved', res.data.data);
                 setFormData({

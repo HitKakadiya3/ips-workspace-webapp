@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ApplyLeave from './pages/ApplyLeave';
+import LeaveDetails from './pages/LeaveDetails';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
@@ -38,6 +39,11 @@ function App() {
         <Route path="/leave/apply" element={
           <ProtectedRoute>
             <ApplyLeave />
+          </ProtectedRoute>
+        } />
+        <Route path="/leave/details" element={
+          <ProtectedRoute>
+            <LeaveDetails />
           </ProtectedRoute>
         } />
       </Routes>
