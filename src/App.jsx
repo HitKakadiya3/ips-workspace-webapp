@@ -5,8 +5,8 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ApplyLeave from './pages/ApplyLeave';
 import LeaveDetails from './pages/LeaveDetails';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import PublicRoute from './components/auth/PublicRoute';
 
 function App() {
   return (

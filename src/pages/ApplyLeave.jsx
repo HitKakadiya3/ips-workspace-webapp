@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../services/api';
-import DashboardLayout from '../components/DashboardLayout';
+import DashboardLayout from '../components/layouts/DashboardLayout';
 import { Info, ChevronDown } from 'lucide-react';
 
 const ApplyLeave = () => {

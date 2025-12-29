@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Disc } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
-import AuthLayout from '../components/AuthLayout';
+import AuthLayout from '../components/layouts/AuthLayout';
 import { register } from '../services/api';
 
 const registerSchema = yup.object().shape({

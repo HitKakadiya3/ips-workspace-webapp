@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../components/DashboardLayout';
+import DashboardLayout from '../components/layouts/DashboardLayout';
 import { AlertCircle, Loader2, User } from 'lucide-react';
 import { getProfile, updateProfile } from '../services/api';
 

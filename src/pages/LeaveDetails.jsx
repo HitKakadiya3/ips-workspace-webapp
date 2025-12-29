@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, ChevronDown } from 'lucide-react';
-import DashboardLayout from '../components/DashboardLayout';
+import DashboardLayout from '../components/layouts/DashboardLayout';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
 
