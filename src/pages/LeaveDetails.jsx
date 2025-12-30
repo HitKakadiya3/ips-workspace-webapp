@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState } from 'react';
 import { Eye, ChevronDown } from 'lucide-react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
-import api from '../services/api';
 import { Link } from 'react-router-dom';
-import { fetchLeaveCounts, fetchLeaveHistory } from '../store/slices/leaveSlice';
+import { useGetLeaveCountsQuery, useGetLeaveHistoryQuery, useLazyGetLeaveDetailQuery } from '../store/api/leaveApi';
 
 const initialDisplayItems = [
   { type: 'Personal', key: 'Personal', total: 16 },
@@ -35,11 +33,15 @@ const calcDuration = (l) => {
 };
 
 const LeaveDetails = () => {
-  const dispatch = useDispatch();
-  const { counts: reduxCounts, history: leaves, loading, error } = useSelector((state) => state.leave);
-
+  const userId = localStorage.getItem('userId') || '6942550bbaccb92db0ed143d';
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [detailModal, setDetailModal] = useState({ open: false, data: null, loading: false });
+
+  const { data: reduxCounts, isLoading: countsLoading } = useGetLeaveCountsQuery({ userId, year: selectedYear });
+  const { data: leaves = [], isLoading: historyLoading } = useGetLeaveHistoryQuery({ userId, year: selectedYear });
+  const [triggerGetDetail] = useLazyGetLeaveDetailQuery();
+
+  const loading = countsLoading || historyLoading;
 
   const counts = initialDisplayItems.map(item => ({
     ...item,
@@ -49,9 +51,9 @@ const LeaveDetails = () => {
   const fetchLeaveDetail = async (id) => {
     setDetailModal({ open: true, data: null, loading: true });
     try {
-      const res = await api.get(`/api/leaves/${id}`);
-      if (res?.data?.success) {
-        setDetailModal({ open: true, data: res.data.data, loading: false });
+      const res = await triggerGetDetail(id).unwrap();
+      if (res) {
+        setDetailModal({ open: true, data: res, loading: false });
       } else {
         setDetailModal({ open: true, data: null, loading: false });
       }
@@ -60,14 +62,6 @@ const LeaveDetails = () => {
       setDetailModal({ open: true, data: null, loading: false });
     }
   };
-
-  useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      dispatch(fetchLeaveCounts({ userId, year: selectedYear }));
-      dispatch(fetchLeaveHistory({ userId, year: selectedYear }));
-    }
-  }, [dispatch, selectedYear]);
 
   return (
     <DashboardLayout>

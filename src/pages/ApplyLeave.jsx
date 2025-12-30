@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import api from '../services/api';
+import React, { useState } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { Info, ChevronDown } from 'lucide-react';
-import { fetchLeaveCounts, fetchLeaveHistory } from '../store/slices/leaveSlice';
+import { useGetLeaveCountsQuery, useGetLeaveHistoryQuery, useApplyLeaveMutation } from '../store/api/leaveApi';
 
 const ApplyLeave = () => {
-    const dispatch = useDispatch();
-    const { counts: reduxCounts, history: leaveHistory, loading } = useSelector((state) => state.leave);
+    const userId = localStorage.getItem('userId');
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+    const { data: reduxCounts, isLoading: countsLoading } = useGetLeaveCountsQuery({ userId, year: selectedYear });
+    const { data: leaveHistory, isLoading: historyLoading } = useGetLeaveHistoryQuery({ userId, year: selectedYear });
+    const [applyLeave, { isLoading: submitting }] = useApplyLeaveMutation();
 
     const [formData, setFormData] = useState({
         category: '',
@@ -19,7 +21,6 @@ const ApplyLeave = () => {
         partOfday: '',
         reason: ''
     });
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     const leaveCategories = [
         'Personal Leave',
@@ -33,14 +34,6 @@ const ApplyLeave = () => {
         { type: 'Unpaid', used: reduxCounts.Unpaid || 0, total: 60 },
         { type: 'Ad-hoc', used: reduxCounts.Adhoc || reduxCounts['Ad-hoc'] || 0, total: 0 }
     ] : [];
-
-    useEffect(() => {
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-            dispatch(fetchLeaveCounts({ userId, year: selectedYear }));
-            dispatch(fetchLeaveHistory({ userId, year: selectedYear }));
-        }
-    }, [dispatch, selectedYear]);
 
     const totalLeaves = leaveDetails.reduce((acc, item) => ({
         used: acc.used + item.used,
@@ -57,7 +50,6 @@ const ApplyLeave = () => {
         }));
     };
 
-    const [submitting, setSubmitting] = useState(false);
     const [successModal, setSuccessModal] = useState({ open: false, message: '' });
     const [warningModal, setWarningModal] = useState({ open: false, message: '' });
 
@@ -119,10 +111,6 @@ const ApplyLeave = () => {
                         if ((isExistingAM && isNewAM) || (isExistingPM && isNewPM)) {
                             return `A half-day leave (${isExistingAM ? 'Morning' : 'Afternoon'}) already exists for this date.`;
                         }
-                    } else {
-                        // Different dates, but if it's a multiple day range it's more complex.
-                        // However, 'hours' is only for single day start/end.
-                        // So if start !== lStart, it's not a conflict for 'hours' vs 'hours' on single days.
                     }
                 }
             }
@@ -140,10 +128,8 @@ const ApplyLeave = () => {
         }
 
         if (submitting) return;
-        setSubmitting(true);
 
         try {
-            const userId = localStorage.getItem('userId') || '6942550bbaccb92db0ed143d';
             const leaveType = mapCategoryToLeaveType(formData.category);
             const payload = {
                 leaveType,
@@ -163,9 +149,9 @@ const ApplyLeave = () => {
                 session: formData.duration === 'hours' ? (formData.partOfDay === 'AfterNoon' ? 2 : 1) : undefined
             };
 
-            const res = await api.post(`/api/leaves/user/${userId}`, payload);
-            if (res?.data?.success) {
-                console.log('Leave saved', res.data.data);
+            const res = await applyLeave({ userId, payload }).unwrap();
+            if (res?.success) {
+                console.log('Leave saved', res.data);
                 setFormData({
                     category: '',
                     duration: 'single',
@@ -177,19 +163,15 @@ const ApplyLeave = () => {
                     reason: ''
                 });
 
-                // Refresh counts
-                dispatch(fetchLeaveCounts({ userId, year: selectedYear }));
                 // show success modal
                 setSuccessModal({ open: true, message: 'Leave request submitted successfully.' });
             } else {
-                console.error('Failed to save leave', res?.data);
+                console.error('Failed to save leave', res);
                 setWarningModal({ open: true, message: 'Failed to submit leave. Please try again.' });
             }
         } catch (err) {
             console.error('Submit error', err);
             setWarningModal({ open: true, message: 'Error submitting leave. Please check your connection.' });
-        } finally {
-            setSubmitting(false);
         }
     };
 
