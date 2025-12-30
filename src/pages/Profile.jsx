@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { AlertCircle, Loader2, User } from 'lucide-react';
-import { getProfile, updateProfile } from '../services/api';
+import { fetchProfile, updateProfileAsync, clearProfileStatus } from '../store/slices/profileSlice';
 
 const Profile = () => {
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
+    const dispatch = useDispatch();
+    const { data: profileData, loading, saving, error, success } = useSelector((state) => state.profile);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -23,36 +22,25 @@ const Profile = () => {
     });
 
     useEffect(() => {
-        fetchProfile();
-    }, []);
+        dispatch(fetchProfile());
+    }, [dispatch]);
 
-    const fetchProfile = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const response = await getProfile();
-            const userData = response.data.user || response.data;
-
+    useEffect(() => {
+        if (profileData) {
             setFormData({
-                name: userData.name || '',
-                email: userData.email || '',
-                mobileNumber: userData.mobileNumber || userData.mobile || '',
-                dateOfJoining: userData.dateOfJoining ? userData.dateOfJoining.split('T')[0] : '',
-                dateOfBirth: userData.dateOfBirth ? userData.dateOfBirth.split('T')[0] : '',
-                jobTitle: userData.jobTitle || userData.designation || '',
-                primaryTechnology1: userData.primaryTechnology1 || '',
-                primaryTechnology2: userData.primaryTechnology2 || '',
-                intermediateTechnology: userData.intermediateTechnology || '',
-                database: userData.database || ''
+                name: profileData.name || '',
+                email: profileData.email || '',
+                mobileNumber: profileData.mobileNumber || profileData.mobile || '',
+                dateOfJoining: profileData.dateOfJoining ? profileData.dateOfJoining.split('T')[0] : '',
+                dateOfBirth: profileData.dateOfBirth ? profileData.dateOfBirth.split('T')[0] : '',
+                jobTitle: profileData.jobTitle || profileData.designation || '',
+                primaryTechnology1: profileData.primaryTechnology1 || '',
+                primaryTechnology2: profileData.primaryTechnology2 || '',
+                intermediateTechnology: profileData.intermediateTechnology || '',
+                database: profileData.database || ''
             });
-        } catch (err) {
-            console.error('Error fetching profile:', err);
-            setError(err.response?.data?.message || err.message || 'Failed to load profile');
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [profileData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -60,31 +48,24 @@ const Profile = () => {
             ...prev,
             [name]: value
         }));
-        setSuccess(false);
+        if (success || error) {
+            dispatch(clearProfileStatus());
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const userId = localStorage.getItem('userId');
 
-        try {
-            setSaving(true);
-            setError(null);
-            setSuccess(false);
+        dispatch(updateProfileAsync({ userId, data: formData }));
 
-            const userId = localStorage.getItem('userId');
-            await updateProfile(userId, formData);
-
-            // Update localStorage name if changed
+        if (formData.name) {
             localStorage.setItem('name', formData.name);
-
-            setSuccess(true);
-            setTimeout(() => setSuccess(false), 3000);
-        } catch (err) {
-            console.error('Error updating profile:', err);
-            setError(err.response?.data?.message || err.message || 'Failed to update profile');
-        } finally {
-            setSaving(false);
         }
+
+        setTimeout(() => {
+            dispatch(clearProfileStatus());
+        }, 3000);
     };
 
     if (loading) {
@@ -105,7 +86,7 @@ const Profile = () => {
                     <h2 className="text-2xl font-bold text-gray-700 mb-2">Error Loading Profile</h2>
                     <p className="text-gray-500 mb-4">{error}</p>
                     <button
-                        onClick={fetchProfile}
+                        onClick={() => dispatch(fetchProfile())}
                         className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                     >
                         Retry

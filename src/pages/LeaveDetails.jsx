@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Eye, ChevronDown } from 'lucide-react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
+import { fetchLeaveCounts, fetchLeaveHistory } from '../store/slices/leaveSlice';
 
 const initialDisplayItems = [
   { type: 'Personal', key: 'Personal', total: 16 },
@@ -16,57 +18,33 @@ const formatDate = (iso) => {
   return d.toISOString().split('T')[0];
 };
 
-const calcDuration = (start, end, hours) => {
-  if (hours) return hours;
-  if (!start) return '';
-  const s = new Date(start);
-  const e = end ? new Date(end) : s;
+const calcDuration = (l) => {
+  const isHalf = l.partOfDay || l.partOfday || l.part_of_day || l.duration === 0.5 || l.leaveDuration === 0.5 || l.isHalfDay || l.session === 1 || l.session === 2;
+  if (isHalf) {
+    const part = l.partOfDay || l.partOfday || l.part_of_day;
+    if (part === 'Morning' || part === 'AM' || l.session === 1) return '0.5 - AM';
+    if (part === 'AfterNoon' || part === 'Afternoon' || part === 'PM' || l.session === 2) return '0.5 - PM';
+    return '0.5';
+  }
+  if (l.hours) return `${l.hours} Hours`;
+  if (!l.startDate) return '';
+  const s = new Date(l.startDate);
+  const e = l.endDate ? new Date(l.endDate) : s;
   const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-  return diff <= 1 ? 1 : diff;
+  return diff <= 1 ? '1 Day' : `${diff} Days`;
 };
 
 const LeaveDetails = () => {
+  const dispatch = useDispatch();
+  const { counts: reduxCounts, history: leaves, loading, error } = useSelector((state) => state.leave);
+
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [counts, setCounts] = useState(initialDisplayItems.map(i => ({ ...i, used: 0 })));
-  const [leaves, setLeaves] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [detailModal, setDetailModal] = useState({ open: false, data: null, loading: false });
 
-  const fetchCounts = async (year) => {
-    try {
-      const userId = localStorage.getItem('userId');
-      const res = await api.get(`/api/leaves/user/${userId}/count?year=${year}`);
-      if (res?.data?.success && res.data.data) {
-        const data = res.data.data;
-        const mapped = initialDisplayItems.map(item => ({
-          ...item,
-          used: Number(data[item.key]) || 0
-        }));
-        setCounts(mapped);
-      }
-    } catch (err) {
-      console.error('fetchCounts error', err);
-    }
-  };
-
-  const fetchLeaves = async (year) => {
-    setLoading(true);
-    try {
-      const userId = localStorage.getItem('userId');
-      const res = await api.get(`/api/leaves/user/${userId}?year=${year}`);
-      // expect array in res.data.data
-      if (res?.data?.success && Array.isArray(res.data.data)) {
-        setLeaves(res.data.data.reverse());
-      } else {
-        setLeaves([]);
-      }
-    } catch (err) {
-      console.error('fetchLeaves error', err);
-      setLeaves([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const counts = initialDisplayItems.map(item => ({
+    ...item,
+    used: (reduxCounts && (reduxCounts[item.key] || reduxCounts[item.type])) || 0
+  }));
 
   const fetchLeaveDetail = async (id) => {
     setDetailModal({ open: true, data: null, loading: true });
@@ -84,9 +62,12 @@ const LeaveDetails = () => {
   };
 
   useEffect(() => {
-    fetchCounts(selectedYear);
-    fetchLeaves(selectedYear);
-  }, [selectedYear]);
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      dispatch(fetchLeaveCounts({ userId, year: selectedYear }));
+      dispatch(fetchLeaveHistory({ userId, year: selectedYear }));
+    }
+  }, [dispatch, selectedYear]);
 
   return (
     <DashboardLayout>
@@ -145,7 +126,7 @@ const LeaveDetails = () => {
                       <td className="py-3 px-4 text-sm text-red-500">{localStorage.getItem('name') || 'User'}</td>
                       <td className="py-3 px-4 text-sm">{l.leaveType}</td>
                       <td className="py-3 px-4 text-sm text-red-400">{l.startDate && formatDate(l.startDate)}{l.endDate && l.endDate !== l.startDate ? ` To ${formatDate(l.endDate)}` : ''}</td>
-                      <td className="py-3 px-4 text-sm">{calcDuration(l.startDate, l.endDate, l.hours)}</td>
+                      <td className="py-3 px-4 text-sm">{calcDuration(l)}</td>
                       <td className="py-3 px-4 text-sm"><span className={`px-2 py-1 text-xs rounded-full ${l.status === 'Approved' || l.status === 'accepted' || l.status === 'Accepted' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{l.status}</span></td>
                       <td className="py-3 px-4 text-sm">{localStorage.getItem('name') || 'User'}</td>
                       <td className="py-3 px-4 text-sm text-red-400">{l.createdAt ? formatDate(l.createdAt) : ''}</td>
@@ -175,7 +156,7 @@ const LeaveDetails = () => {
                   <div><strong>Type:</strong> {detailModal.data.leaveType}</div>
                   <div><strong>Start Date:</strong> {detailModal.data.startDate ? formatDate(detailModal.data.startDate) : ''}</div>
                   <div><strong>End Date:</strong> {detailModal.data.endDate ? formatDate(detailModal.data.endDate) : ''}</div>
-                  <div><strong>Duration:</strong> {calcDuration(detailModal.data.startDate, detailModal.data.endDate, detailModal.data.hours)}</div>
+                  <div><strong>Duration:</strong> {calcDuration(detailModal.data)}</div>
                   <div><strong>Status:</strong> {detailModal.data.status}</div>
                   <div><strong>Reason:</strong> {detailModal.data.reason || '-'}</div>
                   <div><strong>Applied On:</strong> {detailModal.data.createdAt ? formatDate(detailModal.data.createdAt) : ''}</div>

@@ -1,15 +1,22 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import api from '../services/api';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { Info, ChevronDown } from 'lucide-react';
+import { fetchLeaveCounts, fetchLeaveHistory } from '../store/slices/leaveSlice';
 
 const ApplyLeave = () => {
+    const dispatch = useDispatch();
+    const { counts: reduxCounts, history: leaveHistory, loading } = useSelector((state) => state.leave);
+
     const [formData, setFormData] = useState({
         category: '',
         duration: 'single',
         startDate: '',
         endDate: '',
         hours: '',
+        partOfDay: '',
+        partOfday: '',
         reason: ''
     });
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -20,38 +27,20 @@ const ApplyLeave = () => {
         'Appreciation Leave (C-Off)'
     ];
 
-    const initialDisplayItems = [
-        { type: 'Personal', key: 'Personal', total: 16 },
-        { type: 'Unpaid', key: 'Unpaid', total: 60 },
-        { type: 'Ad-hoc', key: 'Ad-hoc', total: 0 }
-    ];
-
-    const [leaveDetails, setLeaveDetails] = useState(
-        initialDisplayItems.map(item => ({ type: item.type, used: 0, total: item.total }))
-    );
-
-    // fetch leave counts and update state
-    const fetchLeaveCounts = useCallback(async (year) => {
-        try {
-            const userId = localStorage.getItem('userId');
-            const res = await api.get(`/api/leaves/user/${userId}/count?year=${year}`);
-            if (res?.data?.success && res.data.data) {
-                const data = res.data.data;
-                const mapped = initialDisplayItems.map(item => ({
-                    type: item.type,
-                    used: Number(data[item.key]) || 0,
-                    total: item.total
-                }));
-                setLeaveDetails(mapped);
-            }
-        } catch (err) {
-            console.error('Failed to fetch leave counts', err);
-        }
-    }, []);
+    // Simplified mapping for the UI
+    const leaveDetails = reduxCounts ? [
+        { type: 'Personal', used: reduxCounts.Personal || 0, total: 16 },
+        { type: 'Unpaid', used: reduxCounts.Unpaid || 0, total: 60 },
+        { type: 'Ad-hoc', used: reduxCounts.Adhoc || reduxCounts['Ad-hoc'] || 0, total: 0 }
+    ] : [];
 
     useEffect(() => {
-        fetchLeaveCounts(selectedYear); 
-    }, [selectedYear, fetchLeaveCounts]);
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            dispatch(fetchLeaveCounts({ userId, year: selectedYear }));
+            dispatch(fetchLeaveHistory({ userId, year: selectedYear }));
+        }
+    }, [dispatch, selectedYear]);
 
     const totalLeaves = leaveDetails.reduce((acc, item) => ({
         used: acc.used + item.used,
@@ -60,14 +49,17 @@ const ApplyLeave = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        console.log(name, value, "leave");
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: value,
+            ...(name === 'partOfDay' ? { partOfday: value } : {})
         }));
     };
 
     const [submitting, setSubmitting] = useState(false);
     const [successModal, setSuccessModal] = useState({ open: false, message: '' });
+    const [warningModal, setWarningModal] = useState({ open: false, message: '' });
 
     const mapCategoryToLeaveType = (category) => {
         if (!category) return '';
@@ -80,8 +72,73 @@ const ApplyLeave = () => {
         return 'Other';
     };
 
+    const checkConflict = () => {
+        if (!leaveHistory || !formData.startDate) return null;
+
+        const start = new Date(formData.startDate);
+        const end = formData.duration === 'multiple' ? new Date(formData.endDate) : start;
+
+        // Reset time to midnight for accurate comparison
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+
+        for (const leave of leaveHistory) {
+            const lStart = new Date(leave.startDate);
+            const lEnd = leave.endDate ? new Date(leave.endDate) : lStart;
+
+            lStart.setHours(0, 0, 0, 0);
+            lEnd.setHours(0, 0, 0, 0);
+
+            // Check if dates overlap
+            if (start <= lEnd && end >= lStart) {
+                // If the existing leave is a full day, it's always a conflict
+                const isExistingHalf = leave.isHalfDay || leave.duration === 0.5 || leave.leaveDuration === 0.5;
+                const isNewHalf = formData.duration === 'hours';
+
+                if (!isExistingHalf && !isNewHalf) return "Leave already added for these dates.";
+
+                if (!isExistingHalf && isNewHalf) return "A full-day leave already exists for this date.";
+
+                if (isExistingHalf && !isNewHalf) {
+                    // If we are applying for a full day but there's already a half day
+                    if (start.getTime() === lStart.getTime()) return "A half-day leave already exists for this date.";
+                }
+
+                if (isExistingHalf && isNewHalf) {
+                    // Both are half days, check AM/PM
+                    if (start.getTime() === lStart.getTime()) {
+                        const existingPart = (leave.partOfDay || leave.partOfday || leave.part_of_day || "").toLowerCase();
+                        const newPart = formData.partOfDay.toLowerCase();
+
+                        const isExistingAM = existingPart.includes('morning') || existingPart.includes('am') || leave.session === 1;
+                        const isExistingPM = existingPart.includes('afternoon') || existingPart.includes('pm') || leave.session === 2;
+
+                        const isNewAM = newPart.includes('morning');
+                        const isNewPM = newPart.includes('afternoon');
+
+                        if ((isExistingAM && isNewAM) || (isExistingPM && isNewPM)) {
+                            return `A half-day leave (${isExistingAM ? 'Morning' : 'Afternoon'}) already exists for this date.`;
+                        }
+                    } else {
+                        // Different dates, but if it's a multiple day range it's more complex.
+                        // However, 'hours' is only for single day start/end.
+                        // So if start !== lStart, it's not a conflict for 'hours' vs 'hours' on single days.
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const conflict = checkConflict();
+        if (conflict) {
+            setWarningModal({ open: true, message: conflict });
+            return;
+        }
+
         if (submitting) return;
         setSubmitting(true);
 
@@ -94,7 +151,16 @@ const ApplyLeave = () => {
                 endDate: formData.duration === 'multiple' ? formData.endDate : formData.startDate,
                 reason: formData.reason,
                 year: new Date(formData.startDate).getFullYear(),
-                hours: formData.duration === 'hours' ? formData.hours : undefined
+                hours: formData.duration === 'hours' ? "4" : undefined,
+                duration: formData.duration === 'hours' ? 0.5 : undefined,
+                leaveDuration: formData.duration === 'hours' ? 0.5 : undefined,
+                days: formData.duration === 'hours' ? 0.5 : undefined,
+                noOfDays: formData.duration === 'hours' ? 0.5 : undefined,
+                isHalfDay: formData.duration === 'hours',
+                partOfDay: formData.duration === 'hours' ? (formData.partOfDay === 'AfterNoon' ? 'AfterNoon' : 'Morning') : undefined,
+                partOfday: formData.duration === 'hours' ? (formData.partOfDay === 'AfterNoon' ? 'AfterNoon' : 'Morning') : undefined,
+                part_of_day: formData.duration === 'hours' ? (formData.partOfDay === 'AfterNoon' ? 'PM' : 'AM') : undefined,
+                session: formData.duration === 'hours' ? (formData.partOfDay === 'AfterNoon' ? 2 : 1) : undefined
             };
 
             const res = await api.post(`/api/leaves/user/${userId}`, payload);
@@ -106,18 +172,22 @@ const ApplyLeave = () => {
                     startDate: '',
                     endDate: '',
                     hours: '',
+                    partOfDay: '',
+                    partOfday: '',
                     reason: ''
                 });
-                fetchLeaveCounts(selectedYear);
+
+                // Refresh counts
+                dispatch(fetchLeaveCounts({ userId, year: selectedYear }));
                 // show success modal
                 setSuccessModal({ open: true, message: 'Leave request submitted successfully.' });
             } else {
                 console.error('Failed to save leave', res?.data);
-                alert('Failed to submit leave');
+                setWarningModal({ open: true, message: 'Failed to submit leave. Please try again.' });
             }
         } catch (err) {
             console.error('Submit error', err);
-            alert('Error submitting leave');
+            setWarningModal({ open: true, message: 'Error submitting leave. Please check your connection.' });
         } finally {
             setSubmitting(false);
         }
@@ -138,6 +208,23 @@ const ApplyLeave = () => {
                                     className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
                                 >
                                     OK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {warningModal.open && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-black/40" onClick={() => setWarningModal({ open: false, message: '' })} />
+                        <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6 z-10 border-t-4 border-amber-500">
+                            <h4 className="text-lg font-semibold text-amber-600">Warning</h4>
+                            <p className="text-sm text-gray-600 mt-2">{warningModal.message}</p>
+                            <div className="mt-4 text-right">
+                                <button
+                                    onClick={() => setWarningModal({ open: false, message: '' })}
+                                    className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600"
+                                >
+                                    Dismiss
                                 </button>
                             </div>
                         </div>
@@ -262,24 +349,27 @@ const ApplyLeave = () => {
                                 </div>
                             )}
 
-                            {/* Hours - Only show for hours duration */}
+                            {/* Part of Day - Only show for hours duration */}
                             {formData.duration === 'hours' && (
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
                                     <label className="text-sm font-medium text-gray-600 sm:w-32 text-right whitespace-nowrap">
-                                        HOURS <span className="text-red-500">*</span>
+                                        PART OF DAY <span className="text-red-500">*</span>
                                     </label>
                                     <div className="flex-1">
-                                        <input
-                                            type="number"
-                                            name="hours"
-                                            value={formData.hours}
-                                            onChange={handleInputChange}
-                                            placeholder="Enter hours"
-                                            min="1"
-                                            max="8"
-                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-700"
-                                            required
-                                        />
+                                        <div className="relative">
+                                            <select
+                                                name="partOfDay"
+                                                value={formData.partOfDay}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white text-gray-700"
+                                                required
+                                            >
+                                                <option value="">Select Part Of Day</option>
+                                                <option value="Morning">Morning</option>
+                                                <option value="AfterNoon">AfterNoon</option>
+                                            </select>
+                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                                        </div>
                                     </div>
                                 </div>
                             )}

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import * as yup from "yup";
 import AuthLayout from "../components/layouts/AuthLayout";
 import { login } from "../services/api";
+import { loginSuccess } from "../store/slices/authSlice";
 
 const loginSchema = yup.object().shape({
     email: yup.string().required("Email is required").email("Please enter a valid email address"),
@@ -18,6 +20,7 @@ const Login = () => {
     const [validationErrors, setValidationErrors] = useState({});
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -40,16 +43,12 @@ const Login = () => {
         try {
             const response = await login(formData.email, formData.password);
 
-            // Store authentication token
-            if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-            }
-
-            // Store user information for dashboard
-            if (response.data.user) {
-                localStorage.setItem('userId', response.data.user.id || response.data.user._id);
-                localStorage.setItem('name', response.data.user.name);
-                localStorage.setItem('email', response.data.user.email);
+            // Update global state via Redux
+            if (response.data.token && response.data.user) {
+                dispatch(loginSuccess({
+                    token: response.data.token,
+                    user: response.data.user
+                }));
             }
 
             navigate('/dashboard');

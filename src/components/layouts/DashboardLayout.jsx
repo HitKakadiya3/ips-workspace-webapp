@@ -135,7 +135,7 @@ const DashboardLayout = ({ children }) => {
                         <SidebarLink icon={Users} label="Attendance" to="#" collapsed={isCollapsed} />
                         <SidebarItem icon={Timer} label="Timesheet" hasSubmenu collapsed={isCollapsed} />
                         <SidebarItem icon={Users} label="Client Timesheet" hasSubmenu collapsed={isCollapsed} />
-                        
+
                         {/* Leave Management with Submenu */}
                         <SidebarItem
                             icon={Plane}
@@ -162,7 +162,7 @@ const DashboardLayout = ({ children }) => {
                                 />
                             </div>
                         )}
-                        
+
                         <SidebarLink icon={Home} label="Work From Home" to="#" collapsed={isCollapsed} />
                         <SidebarItem icon={BarChart2} label="KPI" hasSubmenu collapsed={isCollapsed} />
                         <SidebarLink icon={Megaphone} label="Announcements" to="#" collapsed={isCollapsed} />
@@ -173,7 +173,7 @@ const DashboardLayout = ({ children }) => {
 
                 {/* Footer */}
                 <div className="p-4 border-t border-gray-800 text-center">
-                    {!isCollapsed && <p className="text-xs text-gray-600">V.1.13.0</p>}
+                    {!isCollapsed && <p className="text-xs text-gray-600">V.1.0.0</p>}
                 </div>
             </aside>
 
@@ -198,9 +198,9 @@ const DashboardLayout = ({ children }) => {
                         </button>
 
                         <h2 className="text-xl font-semibold text-gray-800">
-                            {location.pathname === '/profile' ? 'Profile Details' : 
-                             location.pathname === '/leave/apply' ? 'Apply Leave' :
-                             location.pathname === '/leave/details' ? 'Leave Details' : 'Dashboard'}
+                            {location.pathname === '/profile' ? 'Profile Details' :
+                                location.pathname === '/leave/apply' ? 'Apply Leave' :
+                                    location.pathname === '/leave/details' ? 'Leave Details' : 'Dashboard'}
                         </h2>
                     </div>
 

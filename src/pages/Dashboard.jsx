@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { Info, AlertCircle, Loader2 } from 'lucide-react';
-import { getDashboardData } from '../services/api';
+import { fetchDashboardData } from '../store/slices/dashboardSlice';
+import React, { useEffect } from 'react';
 
 const StatCard = ({ value, label, subtext, highlightColor = 'blue', isLoading = false }) => {
     const colorClasses = {
@@ -44,35 +45,15 @@ const SectionData = ({ title, children, rightTitle }) => (
 );
 
 const Dashboard = () => {
-    const [dashboardData, setDashboardData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const dispatch = useDispatch();
+    const { data: dashboardData, loading, error } = useSelector((state) => state.dashboard);
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                // Get userId from localStorage (stored during login)
-                const userId = localStorage.getItem('userId');
-
-                if (!userId) {
-                    throw new Error('User ID not found. Please login again.');
-                }
-
-                const response = await getDashboardData(userId);
-                setDashboardData(response.data);
-            } catch (err) {
-                console.error('Error fetching dashboard data:', err);
-                setError(err.response?.data?.message || err.message || 'Failed to load dashboard data');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-    }, []);
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            dispatch(fetchDashboardData(userId));
+        }
+    }, [dispatch]);
 
     if (error) {
         return (
