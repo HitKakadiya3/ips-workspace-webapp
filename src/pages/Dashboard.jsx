@@ -1,8 +1,10 @@
 import { useDispatch, useSelector } from 'react-redux';
 import DashboardLayout from '../components/layouts/DashboardLayout';
-import { Info, AlertCircle, Loader2 } from 'lucide-react';
+import { Info, AlertCircle, Loader2, FileText, Download, Calendar } from 'lucide-react';
 import { fetchDashboardData } from '../store/slices/dashboardSlice';
+import { useGetDocumentsQuery } from '../store/api/documentApi';
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const StatCard = ({ value, label, subtext, highlightColor = 'blue', isLoading = false }) => {
     const colorClasses = {
@@ -47,6 +49,7 @@ const SectionData = ({ title, children, rightTitle }) => (
 const Dashboard = () => {
     const dispatch = useDispatch();
     const { data: dashboardData, loading, error } = useSelector((state) => state.dashboard);
+    const { data: documents = [], isLoading: isDocsLoading } = useGetDocumentsQuery();
 
     useEffect(() => {
         const userId = localStorage.getItem('userId');
@@ -90,6 +93,13 @@ const Dashboard = () => {
         rewards: lists.rewards || [],
         certifications: lists.certifications || [],
         leavesNext5Days: lists.leavesNext5Days || []
+    };
+
+    const handleDownload = (file) => {
+        if (!file || !file.path) return;
+        const fileName = file.path.split('\\').pop() || file.path.split('/').pop();
+        const downloadUrl = `http://localhost:5000/uploads/documents/${fileName}`;
+        window.open(downloadUrl, '_blank');
     };
 
     return (
@@ -246,6 +256,52 @@ const Dashboard = () => {
 
             {/* Additional Information Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {/* Recent Documents */}
+                <ContentCard
+                    title="Recent Shared Documents"
+                    isLoading={isDocsLoading}
+                >
+                    {documents?.length > 0 ? (
+                        <div className="space-y-4">
+                            <div className="space-y-3">
+                                {documents.slice(0, 3).map((doc, idx) => (
+                                    <div key={doc._id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors group">
+                                        <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                                            <FileText size={20} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-gray-700 truncate">{doc.title}</p>
+                                            <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-0.5">
+                                                <Calendar size={10} />
+                                                <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                                                <span>•</span>
+                                                <span className="truncate">by {doc.uploadedBy?.name}</span>
+                                            </div>
+                                        </div>
+                                        {doc.files?.[0] && (
+                                            <button
+                                                onClick={() => handleDownload(doc.files[0])}
+                                                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                                                title="Download"
+                                            >
+                                                <Download size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            <Link
+                                to="/document-sharing"
+                                className="block text-center text-xs font-bold text-indigo-600 uppercase hover:underline tracking-wider"
+                            >
+                                View All Documents
+                            </Link>
+                        </div>
+                    ) : (
+                        <EmptyState message="No documents shared yet" />
+                    )}
+                </ContentCard>
+
                 {/* Overdue Project List */}
                 <ContentCard title="Overdue Project List" isLoading={loading}>
                     {additional.overdueProjects?.length > 0 ? (

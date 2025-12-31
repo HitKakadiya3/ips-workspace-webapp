@@ -131,7 +131,7 @@ const DashboardLayout = ({ children }) => {
                         />
                         <SidebarLink icon={Calendar} label="Calendar" to="#" collapsed={isCollapsed} />
                         <SidebarLink icon={Briefcase} label="Projects" to="#" collapsed={isCollapsed} />
-                        <SidebarLink icon={FileText} label="Document Sharing" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={FileText} label="Document Sharing" to="/document-sharing" active={location.pathname === '/document-sharing'} collapsed={isCollapsed} />
                         <SidebarLink icon={Users} label="Attendance" to="#" collapsed={isCollapsed} />
                         <SidebarItem icon={Timer} label="Timesheet" hasSubmenu collapsed={isCollapsed} />
                         <SidebarItem icon={Users} label="Client Timesheet" hasSubmenu collapsed={isCollapsed} />
@@ -200,7 +200,8 @@ const DashboardLayout = ({ children }) => {
                         <h2 className="text-xl font-semibold text-gray-800">
                             {location.pathname === '/profile' ? 'Profile Details' :
                                 location.pathname === '/leave/apply' ? 'Apply Leave' :
-                                    location.pathname === '/leave/details' ? 'Leave Details' : 'Dashboard'}
+                                    location.pathname === '/leave/details' ? 'Leave Details' :
+                                        location.pathname === '/document-sharing' ? 'All Documents' : 'Dashboard'}
                         </h2>
                     </div>
 

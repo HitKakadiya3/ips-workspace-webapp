@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ApplyLeave from './pages/ApplyLeave';
 import LeaveDetails from './pages/LeaveDetails';
+import DocumentSharing from './pages/DocumentSharing';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 
@@ -44,6 +45,11 @@ function App() {
         <Route path="/leave/details" element={
           <ProtectedRoute>
             <LeaveDetails />
+          </ProtectedRoute>
+        } />
+        <Route path="/document-sharing" element={
+          <ProtectedRoute>
+            <DocumentSharing />
           </ProtectedRoute>
         } />
       </Routes>
