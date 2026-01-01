@@ -1,16 +1,34 @@
-# React + Vite
+# IPS Workspace Webapp
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern workspace management web application built with React and Vite.
 
-Currently, two official plugins are available:
+## Setup Instructions
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Follow these steps to set up and run the project locally:
 
-## React Compiler
+### 1. Prerequisites
+Ensure you have the following installed on your machine:
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [npm](https://www.npmjs.com/) (usually comes with Node.js)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Installation
+Clone the repository and install the dependencies:
 
-## Expanding the ESLint configuration
+```bash
+# Clone the repository
+git clone <repository-url>
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Navigate into the project directory
+cd ips-workspace-webapp
+
+# Install dependencies
+npm install
+```
+
+### 3. Running the Development Server
+Start the development server with Hot Module Replacement (HMR):
+
+```bash
+npm run dev
+```
+The application will be available at `http://localhost:5173` (or the port specified in your terminal).
