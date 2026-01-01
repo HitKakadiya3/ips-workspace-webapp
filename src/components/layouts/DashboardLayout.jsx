@@ -129,7 +129,13 @@ const DashboardLayout = ({ children }) => {
                             active={location.pathname === '/dashboard'}
                             collapsed={isCollapsed}
                         />
-                        <SidebarLink icon={Calendar} label="Calendar" to="#" collapsed={isCollapsed} />
+                        <SidebarLink
+                            icon={Calendar}
+                            label="Calendar"
+                            to="/calendar"
+                            active={location.pathname === '/calendar'}
+                            collapsed={isCollapsed}
+                        />
                         <SidebarLink icon={Briefcase} label="Projects" to="#" collapsed={isCollapsed} />
                         <SidebarLink icon={FileText} label="Document Sharing" to="/document-sharing" active={location.pathname === '/document-sharing'} collapsed={isCollapsed} />
                         <SidebarLink icon={Users} label="Attendance" to="#" collapsed={isCollapsed} />
@@ -201,7 +207,8 @@ const DashboardLayout = ({ children }) => {
                             {location.pathname === '/profile' ? 'Profile Details' :
                                 location.pathname === '/leave/apply' ? 'Apply Leave' :
                                     location.pathname === '/leave/details' ? 'Leave Details' :
-                                        location.pathname === '/document-sharing' ? 'All Documents' : 'Dashboard'}
+                                        location.pathname === '/document-sharing' ? 'All Documents' :
+                                            location.pathname === '/calendar' ? 'Calendar' : 'Dashboard'}
                         </h2>
                     </div>
 

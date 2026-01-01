@@ -6,6 +6,7 @@ import Profile from './pages/Profile';
 import ApplyLeave from './pages/ApplyLeave';
 import LeaveDetails from './pages/LeaveDetails';
 import DocumentSharing from './pages/DocumentSharing';
+import CalendarPage from './pages/Calendar';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 
@@ -30,6 +31,11 @@ function App() {
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/calendar" element={
+          <ProtectedRoute>
+            <CalendarPage />
           </ProtectedRoute>
         } />
         <Route path="/profile" element={

@@ -53,6 +53,24 @@ const ApplyLeave = () => {
     const [successModal, setSuccessModal] = useState({ open: false, message: '' });
     const [warningModal, setWarningModal] = useState({ open: false, message: '' });
 
+    const calculateWorkDays = (startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+
+        let count = 0;
+        let current = new Date(start);
+        while (current <= end) {
+            const day = current.getDay();
+            if (day !== 0 && day !== 6) { // Skip Sat (6) and Sun (0)
+                count++;
+            }
+            current.setDate(current.getDate() + 1);
+        }
+        return count;
+    };
+
     const mapCategoryToLeaveType = (category) => {
         if (!category) return '';
         const c = category.toLowerCase();
@@ -131,17 +149,20 @@ const ApplyLeave = () => {
 
         try {
             const leaveType = mapCategoryToLeaveType(formData.category);
+            const isMultiple = formData.duration === 'multiple';
+            const workDays = isMultiple ? calculateWorkDays(formData.startDate, formData.endDate) : (formData.duration === 'hours' ? 0.5 : 1);
+
             const payload = {
                 leaveType,
                 startDate: formData.startDate,
-                endDate: formData.duration === 'multiple' ? formData.endDate : formData.startDate,
+                endDate: isMultiple ? formData.endDate : formData.startDate,
                 reason: formData.reason,
                 year: new Date(formData.startDate).getFullYear(),
+                days: workDays,
+                noOfDays: workDays,
                 hours: formData.duration === 'hours' ? "4" : undefined,
-                duration: formData.duration === 'hours' ? 0.5 : undefined,
-                leaveDuration: formData.duration === 'hours' ? 0.5 : undefined,
-                days: formData.duration === 'hours' ? 0.5 : undefined,
-                noOfDays: formData.duration === 'hours' ? 0.5 : undefined,
+                duration: formData.duration === 'hours' ? 0.5 : workDays,
+                leaveDuration: formData.duration === 'hours' ? 0.5 : workDays,
                 isHalfDay: formData.duration === 'hours',
                 partOfDay: formData.duration === 'hours' ? (formData.partOfDay === 'AfterNoon' ? 'AfterNoon' : 'Morning') : undefined,
                 partOfday: formData.duration === 'hours' ? (formData.partOfDay === 'AfterNoon' ? 'AfterNoon' : 'Morning') : undefined,

@@ -26,10 +26,23 @@ const calcDuration = (l) => {
   }
   if (l.hours) return `${l.hours} Hours`;
   if (!l.startDate) return '';
+
   const s = new Date(l.startDate);
+  s.setHours(0, 0, 0, 0);
   const e = l.endDate ? new Date(l.endDate) : s;
-  const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-  return diff <= 1 ? '1 Day' : `${diff} Days`;
+  e.setHours(0, 0, 0, 0);
+
+  let count = 0;
+  let current = new Date(s);
+  while (current <= e) {
+    const day = current.getDay();
+    if (day !== 0 && day !== 6) { // 0 = Sun, 6 = Sat
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+
+  return count <= 1 ? `${count} Day` : `${count} Days`;
 };
 
 const LeaveDetails = () => {

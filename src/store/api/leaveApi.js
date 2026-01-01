@@ -28,6 +28,11 @@ export const leaveApi = createApi({
             query: (id) => `/api/leaves/${id}`,
             transformResponse: (response) => response.data,
         }),
+        getAllLeaves: builder.query({
+            query: () => '/api/leaves',
+            providesTags: ['Leaves'],
+            transformResponse: (response) => response.data || [],
+        }),
         applyLeave: builder.mutation({
             query: ({ userId, payload }) => ({
                 url: `/api/leaves/user/${userId}`,
@@ -44,5 +49,6 @@ export const {
     useGetLeaveHistoryQuery,
     useGetLeaveDetailQuery,
     useLazyGetLeaveDetailQuery,
+    useGetAllLeavesQuery,
     useApplyLeaveMutation,
 } = leaveApi;
