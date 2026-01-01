@@ -101,8 +101,8 @@ api.interceptors.response.use(
 );
 
 // Auth endpoints
-export const login = (email, password) => authApi.post('/login', { email, password });
-export const register = (name, password, email) => authApi.post('/register', { name, password, email });
+export const login = (email, password, role) => authApi.post('/login', { email, password, role });
+export const register = (name, password, email, role) => authApi.post('/register', { name, password, email, role });
 
 // Dashboard endpoints
 export const getDashboardData = (userId) => api.get(`/api/dashboard/${userId}`);

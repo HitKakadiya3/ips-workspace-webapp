@@ -10,11 +10,12 @@ import { loginSuccess } from "../store/slices/authSlice";
 const loginSchema = yup.object().shape({
     email: yup.string().required("Email is required").email("Please enter a valid email address"),
     password: yup.string().required("Password is required"),
+    role: yup.string().required("Role is required").oneOf(["admin", "employee"], "Invalid role selected"),
 });
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({ email: "", password: "" });
+    const [formData, setFormData] = useState({ email: "", password: "", role: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [validationErrors, setValidationErrors] = useState({});
@@ -41,16 +42,15 @@ const Login = () => {
         }
 
         try {
-            const response = await login(formData.email, formData.password);
+            const response = await login(formData.email, formData.password, formData.role);
 
             // Extract data from response - handle potential nesting
             const responseData = response.data?.data || response.data;
 
             // Update global state via Redux
-            if (responseData.accessToken && responseData.user) {
+            if (responseData.token && responseData.user) {
                 dispatch(loginSuccess({
-                    token: responseData.accessToken,
-                    refreshToken: responseData.refreshToken,
+                    token: responseData.token,
                     user: responseData.user
                 }));
                 // Only navigate if we successfully saved the token
@@ -125,6 +125,29 @@ const Login = () => {
                     </div>
                     {validationErrors.password && (
                         <p className="text-sm text-red-600 mt-1 ml-1">{validationErrors.password}</p>
+                    )}
+                </div>
+
+                {/* Role Selection */}
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 block">
+                        Role
+                    </label>
+                    <select
+                        value={formData.role}
+                        onChange={(e) => {
+                            setFormData({ ...formData, role: e.target.value });
+                            if (validationErrors.role) setValidationErrors({ ...validationErrors, role: null });
+                        }}
+                        className={`w-full px-5 py-4 rounded-xl border ${validationErrors.role ? 'border-red-500 bg-red-50/50' : 'border-gray-200 bg-gray-50/50'} text-gray-900 focus:bg-white focus:outline-none focus:ring-2 ${validationErrors.role ? 'focus:ring-red-500/20 focus:border-red-500' : 'focus:ring-indigo-500/20 focus:border-indigo-500'} transition-all duration-200 appearance-none bg-no-repeat bg-position-[right_1.25rem_center] bg-size-[1rem]`}
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='C19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")` }}
+                    >
+                        <option value="" disabled>Select your role</option>
+                        <option value="admin">Admin</option>
+                        <option value="employee">Employee</option>
+                    </select>
+                    {validationErrors.role && (
+                        <p className="text-sm text-red-600 mt-1 ml-1">{validationErrors.role}</p>
                     )}
                 </div>
 

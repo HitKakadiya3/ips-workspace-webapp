@@ -39,7 +39,7 @@ const Register = () => {
         }
 
         try {
-            await register(formData.name, formData.password, formData.email);
+            await register(formData.name, formData.password, formData.email, "employee");
             navigate('/login');
         } catch (err) {
             console.error(err);
