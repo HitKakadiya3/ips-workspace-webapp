@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Eye, ChevronDown } from 'lucide-react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { Link } from 'react-router-dom';
 import { useGetLeaveCountsQuery, useGetLeaveHistoryQuery, useLazyGetLeaveDetailQuery } from '../store/api/leaveApi';
+import { fetchProfile } from '../store/slices/profileSlice';
 
 const initialDisplayItems = [
   { type: 'Personal', key: 'Personal', total: 16 },
@@ -46,8 +48,32 @@ const calcDuration = (l) => {
 };
 
 const LeaveDetails = () => {
+  const dispatch = useDispatch();
+  const { data: profileData } = useSelector((state) => state.profile);
   const userId = localStorage.getItem('userId') || '6942550bbaccb92db0ed143d';
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    if (!profileData) {
+      dispatch(fetchProfile());
+    }
+  }, [dispatch, profileData]);
+
+  const joiningYear = useMemo(() => {
+    if (profileData?.dateOfJoining) {
+      return new Date(profileData.dateOfJoining).getFullYear();
+    }
+    return 2023; // Fallback
+  }, [profileData]);
+
+  const years = useMemo(() => {
+    const currentY = new Date().getFullYear();
+    const yearList = [];
+    for (let y = currentY; y >= joiningYear; y--) {
+      yearList.push(y);
+    }
+    return yearList;
+  }, [joiningYear]);
   const [detailModal, setDetailModal] = useState({ open: false, data: null, loading: false });
 
   const { data: reduxCounts, isLoading: countsLoading } = useGetLeaveCountsQuery({ userId, year: selectedYear });
@@ -88,9 +114,9 @@ const LeaveDetails = () => {
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 className="px-3 py-2 border border-gray-200 rounded text-sm appearance-none pr-8 focus:outline-none"
               >
-                <option value={2025}>2025</option>
-                <option value={2024}>2024</option>
-                <option value={2023}>2023</option>
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             </div>

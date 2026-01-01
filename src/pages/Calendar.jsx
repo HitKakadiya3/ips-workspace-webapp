@@ -4,7 +4,7 @@ import DashboardLayout from '../components/layouts/DashboardLayout';
 import { useGetAllLeavesQuery } from '../store/api/leaveApi';
 
 const CalendarPage = () => {
-    const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 1)); // Default to Dec 2025 as per image
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     const { data: allLeaves = [], isLoading, isError } = useGetAllLeavesQuery();
 
