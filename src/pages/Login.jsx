@@ -43,15 +43,21 @@ const Login = () => {
         try {
             const response = await login(formData.email, formData.password);
 
-            // Update global state via Redux
-            if (response.data.token && response.data.user) {
-                dispatch(loginSuccess({
-                    token: response.data.token,
-                    user: response.data.user
-                }));
-            }
+            // Extract data from response - handle potential nesting
+            const responseData = response.data?.data || response.data;
 
-            navigate('/dashboard');
+            // Update global state via Redux
+            if (responseData.accessToken && responseData.user) {
+                dispatch(loginSuccess({
+                    token: responseData.accessToken,
+                    refreshToken: responseData.refreshToken,
+                    user: responseData.user
+                }));
+                // Only navigate if we successfully saved the token
+                navigate('/dashboard');
+            } else {
+                setError("Login successful but failed to receive user data");
+            }
         } catch (err) {
             setError(err.response?.data?.message || "Invalid username or password");
         } finally {
