@@ -41,6 +41,14 @@ export const leaveApi = createApi({
             }),
             invalidatesTags: ['Leaves'],
         }),
+        updateLeaveStatus: builder.mutation({
+            query: ({ leaveId, status }) => ({
+                url: `/api/leaves/${leaveId}`,
+                method: 'PATCH',
+                body: { status },
+            }),
+            invalidatesTags: ['Leaves'],
+        }),
     }),
 });
 
@@ -51,4 +59,5 @@ export const {
     useLazyGetLeaveDetailQuery,
     useGetAllLeavesQuery,
     useApplyLeaveMutation,
+    useUpdateLeaveStatusMutation,
 } = leaveApi;

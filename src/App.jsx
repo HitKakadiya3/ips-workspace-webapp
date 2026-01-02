@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ApplyLeave from './pages/ApplyLeave';
 import LeaveDetails from './pages/LeaveDetails';
+import LeaveApproval from './pages/LeaveApproval';
 import DocumentSharing from './pages/DocumentSharing';
 import CalendarPage from './pages/Calendar';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -51,6 +52,11 @@ function App() {
         <Route path="/leave/details" element={
           <ProtectedRoute>
             <LeaveDetails />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/leave-approval" element={
+          <ProtectedRoute>
+            <LeaveApproval />
           </ProtectedRoute>
         } />
         <Route path="/document-sharing" element={

@@ -19,7 +19,8 @@ import {
     ChevronLeft,
     User,
     LogOut,
-    ChevronDown
+    ChevronDown,
+    CheckCircle2
 } from 'lucide-react';
 
 import { useState } from 'react';
@@ -70,6 +71,8 @@ const DashboardLayout = ({ children }) => {
     const [openMenus, setOpenMenus] = useState({ leaveManagement: false });
     const navigate = useNavigate();
     const location = useLocation();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = user.role === 'Admin';
 
     const toggleMenu = (menu) => {
         setOpenMenus(prev => ({
@@ -154,19 +157,40 @@ const DashboardLayout = ({ children }) => {
                         />
                         {(openMenus.leaveManagement || isLeaveManagementActive) && !isCollapsed && (
                             <div className="bg-gray-900/50">
-                                <SubMenuItem
-                                    label="Apply Leave"
-                                    to="/leave/apply"
-                                    active={location.pathname === '/leave/apply'}
-                                    collapsed={isCollapsed}
-                                />
-                                <SubMenuItem
-                                    label="Leave Details"
-                                    to="/leave/details"
-                                    active={location.pathname === '/leave/details'}
-                                    collapsed={isCollapsed}
-                                />
+                                {!isAdmin ? (
+                                    <>
+                                        <SubMenuItem
+                                            label="Apply Leave"
+                                            to="/leave/apply"
+                                            active={location.pathname === '/leave/apply'}
+                                            collapsed={isCollapsed}
+                                        />
+                                        <SubMenuItem
+                                            label="Leave Details"
+                                            to="/leave/details"
+                                            active={location.pathname === '/leave/details'}
+                                            collapsed={isCollapsed}
+                                        />
+                                    </>
+                                ) : (
+                                    <SubMenuItem
+                                        label="Leave Approval"
+                                        to="/admin/leave-approval"
+                                        active={location.pathname === '/admin/leave-approval'}
+                                        collapsed={isCollapsed}
+                                    />
+                                )}
                             </div>
+                        )}
+
+                        {isAdmin && (
+                            <SidebarLink
+                                icon={CheckCircle2}
+                                label="Leave Approval"
+                                to="/admin/leave-approval"
+                                active={location.pathname === '/admin/leave-approval'}
+                                collapsed={isCollapsed}
+                            />
                         )}
 
                         <SidebarLink icon={Home} label="Work From Home" to="#" collapsed={isCollapsed} />
@@ -208,7 +232,8 @@ const DashboardLayout = ({ children }) => {
                                 location.pathname === '/leave/apply' ? 'Apply Leave' :
                                     location.pathname === '/leave/details' ? 'Leave Details' :
                                         location.pathname === '/document-sharing' ? 'All Documents' :
-                                            location.pathname === '/calendar' ? 'Calendar' : 'Dashboard'}
+                                            location.pathname === '/admin/leave-approval' ? 'Leave Approvals' :
+                                                location.pathname === '/calendar' ? 'Calendar' : 'Dashboard'}
                         </h2>
                     </div>
 
