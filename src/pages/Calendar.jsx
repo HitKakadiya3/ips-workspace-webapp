@@ -88,11 +88,17 @@ const CalendarPage = () => {
     }
 
     // Current month days
+    const today = new Date();
     for (let i = 1; i <= daysInMonth; i++) {
         const dayOfWeek = (firstDayOfMonth + i - 1) % 7;
+        const isToday = i === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear();
+
         calendarGrid.push({
             day: i,
             currentMonth: true,
+            isToday,
             isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
             entries: processedLeaves[i] || []
         });
@@ -181,10 +187,20 @@ const CalendarPage = () => {
                                         return (
                                             <td
                                                 key={dayIndex}
-                                                className={`relative p-2 border-x border-gray-50 h-32 align-top transition-colors ${cell.isWeekend ? 'bg-cyan-50/30' : 'bg-white'}`}
+                                                className={`relative p-2 border-x border-gray-50 h-32 align-top transition-colors ${cell.isToday
+                                                    ? 'bg-indigo-50/40 ring-1 ring-inset ring-indigo-100/50'
+                                                    : cell.isWeekend
+                                                        ? 'bg-cyan-50/30'
+                                                        : 'bg-white'
+                                                    }`}
                                             >
                                                 {/* Date Number */}
-                                                <div className={`text-right pr-1 mb-2 text-sm font-bold ${cell.currentMonth ? 'text-gray-400' : 'text-gray-200'}`}>
+                                                <div className={`text-right pr-1 mb-2 text-sm font-bold ${cell.isToday
+                                                    ? 'text-indigo-600'
+                                                    : cell.currentMonth
+                                                        ? 'text-gray-400'
+                                                        : 'text-gray-200'
+                                                    }`}>
                                                     {cell.day}
                                                 </div>
 
