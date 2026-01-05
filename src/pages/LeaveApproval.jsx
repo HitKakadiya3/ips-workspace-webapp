@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, X, Eye, Loader2, AlertCircle, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
-import { useGetAllLeavesQuery, useUpdateLeaveStatusMutation, useLazyGetLeaveDetailQuery } from '../store/api/leaveApi';
+import { useGetAllLeavesQuery, useUpdateLeaveStatusMutation } from '../store/api/leaveApi';
 
 const LeaveApproval = () => {
     const [page, setPage] = useState(1);
@@ -22,7 +22,7 @@ const LeaveApproval = () => {
     const pagination = data?.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 };
 
     const [updateStatus, { isLoading: updating }] = useUpdateLeaveStatusMutation();
-    const [triggerGetDetail] = useLazyGetLeaveDetailQuery();
+
     const [successModal, setSuccessModal] = useState({ open: false, message: '' });
     const [errorModal, setErrorModal] = useState({ open: false, message: '' });
     const [detailModal, setDetailModal] = useState({ open: false, data: null, loading: false });
@@ -67,25 +67,13 @@ const LeaveApproval = () => {
         setPage(1);
     };
 
-    const handleViewDetails = async (leave) => {
+    const handleViewDetails = (leave) => {
         const initialName = leave.user?.name || leave.userName || 'Unknown User';
         setDetailModal({
             open: true,
             data: { ...leave, userName: initialName },
-            loading: true
+            loading: false
         });
-        try {
-            const res = await triggerGetDetail(leave._id).unwrap();
-            setDetailModal({
-                open: true,
-                data: { ...res, userName: res.user?.name || res.userName || initialName },
-                loading: false
-            });
-        } catch (err) {
-            console.error('Failed to fetch leave details:', err);
-            setDetailModal({ open: false, data: null, loading: false });
-            setErrorModal({ open: true, message: 'Failed to load leave details.' });
-        }
     };
 
     const getStatusStyle = (status) => {
