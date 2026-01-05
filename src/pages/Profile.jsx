@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import DashboardLayout from '../components/layouts/DashboardLayout';
+
 import { AlertCircle, Loader2, User } from 'lucide-react';
 import { fetchProfile, updateProfileAsync, clearProfileStatus } from '../store/slices/profileSlice';
 
@@ -70,17 +70,17 @@ const Profile = () => {
 
     if (loading) {
         return (
-            <DashboardLayout>
+            <>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
                 </div>
-            </DashboardLayout>
+            </>
         );
     }
 
     if (error && !formData.email) {
         return (
-            <DashboardLayout>
+            <>
                 <div className="flex flex-col items-center justify-center min-h-[400px] animate-fadeIn">
                     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
                     <h2 className="text-2xl font-bold text-gray-700 mb-2">Error Loading Profile</h2>
@@ -92,12 +92,12 @@ const Profile = () => {
                         Retry
                     </button>
                 </div>
-            </DashboardLayout>
+            </>
         );
     }
 
     return (
-        <DashboardLayout>
+        <>
             <div className="max-w-5xl mx-auto animate-fadeIn">
                 {/* Header */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -316,7 +316,7 @@ const Profile = () => {
                     </div>
                 </form>
             </div>
-        </DashboardLayout>
+        </>
     );
 };
 

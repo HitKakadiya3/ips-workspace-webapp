@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import DashboardLayout from '../components/layouts/DashboardLayout';
+
 import { Info, AlertCircle, Loader2, FileText, Download, Calendar } from 'lucide-react';
 import { fetchDashboardData } from '../store/slices/dashboardSlice';
 import { useGetDocumentsQuery } from '../store/api/documentApi';
@@ -60,7 +60,7 @@ const Dashboard = () => {
 
     if (error) {
         return (
-            <DashboardLayout>
+            <>
                 <div className="flex flex-col items-center justify-center min-h-100 animate-fadeIn">
                     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
                     <h2 className="text-2xl font-bold text-gray-700 mb-2">Error Loading Dashboard</h2>
@@ -72,7 +72,7 @@ const Dashboard = () => {
                         Retry
                     </button>
                 </div>
-            </DashboardLayout>
+            </>
         );
     }
 
@@ -103,7 +103,7 @@ const Dashboard = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             {/* Projects Section */}
             <SectionData title="Projects">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -427,7 +427,7 @@ const Dashboard = () => {
                     )}
                 </ContentCard>
             </div>
-        </DashboardLayout>
+        </>
     );
 };
 

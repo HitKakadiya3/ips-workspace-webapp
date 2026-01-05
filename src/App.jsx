@@ -10,6 +10,7 @@ import DocumentSharing from './pages/DocumentSharing';
 import CalendarPage from './pages/Calendar';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
+import DashboardLayout from './components/layouts/DashboardLayout';
 
 function App() {
   return (
@@ -29,41 +30,19 @@ function App() {
           </PublicRoute>
         } />
 
-        <Route path="/dashboard" element={
+        <Route element={
           <ProtectedRoute>
-            <Dashboard />
+            <DashboardLayout />
           </ProtectedRoute>
-        } />
-        <Route path="/calendar" element={
-          <ProtectedRoute>
-            <CalendarPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
-        <Route path="/leave/apply" element={
-          <ProtectedRoute>
-            <ApplyLeave />
-          </ProtectedRoute>
-        } />
-        <Route path="/leave/details" element={
-          <ProtectedRoute>
-            <LeaveDetails />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/leave-approval" element={
-          <ProtectedRoute>
-            <LeaveApproval />
-          </ProtectedRoute>
-        } />
-        <Route path="/document-sharing" element={
-          <ProtectedRoute>
-            <DocumentSharing />
-          </ProtectedRoute>
-        } />
+        }>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/leave/apply" element={<ApplyLeave />} />
+          <Route path="/leave/details" element={<LeaveDetails />} />
+          <Route path="/admin/leave-approval" element={<LeaveApproval />} />
+          <Route path="/document-sharing" element={<DocumentSharing />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

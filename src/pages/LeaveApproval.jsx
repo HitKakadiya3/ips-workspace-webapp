@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Check, X, Eye, Loader2, AlertCircle, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import DashboardLayout from '../components/layouts/DashboardLayout';
+
 import { useGetAllLeavesQuery, useUpdateLeaveStatusMutation } from '../store/api/leaveApi';
 
 const LeaveApproval = () => {
@@ -105,7 +105,7 @@ const LeaveApproval = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="space-y-6 animate-fadeIn">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -469,7 +469,7 @@ const LeaveApproval = () => {
                     </div>
                 )}
             </div>
-        </DashboardLayout>
+        </>
     );
 };
 

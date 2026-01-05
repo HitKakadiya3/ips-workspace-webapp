@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Plus, Lock, Globe, FileText, ChevronDown, Download, Calendar, Paperclip, MoreVertical, Trash2 } from 'lucide-react';
-import DashboardLayout from '../components/layouts/DashboardLayout';
+
 import AddDocumentModal from '../components/modals/AddDocumentModal';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal';
 import { useGetDocumentsQuery, useDeleteDocumentMutation } from '../store/api/documentApi';
@@ -57,7 +57,7 @@ const DocumentSharing = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="p-1 space-y-6">
                 {/* Filters and Search Header */}
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -245,7 +245,7 @@ const DocumentSharing = () => {
                 title={docToDelete?.title || 'this document'}
                 isLoading={isDeleting}
             />
-        </DashboardLayout>
+        </>
     );
 };
 

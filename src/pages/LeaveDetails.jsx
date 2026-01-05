@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Eye, ChevronDown } from 'lucide-react';
-import DashboardLayout from '../components/layouts/DashboardLayout';
+
 import { Link } from 'react-router-dom';
 import { useGetLeaveCountsQuery, useGetLeaveHistoryQuery, useLazyGetLeaveDetailQuery } from '../store/api/leaveApi';
 import { fetchProfile } from '../store/slices/profileSlice';
@@ -103,7 +103,7 @@ const LeaveDetails = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">All Leaves</h3>
@@ -204,7 +204,7 @@ const LeaveDetails = () => {
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 };
 

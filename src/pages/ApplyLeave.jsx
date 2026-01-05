@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import DashboardLayout from '../components/layouts/DashboardLayout';
+
 import { Info, ChevronDown } from 'lucide-react';
 import { useGetLeaveCountsQuery, useGetLeaveHistoryQuery, useApplyLeaveMutation } from '../store/api/leaveApi';
 import { fetchProfile } from '../store/slices/profileSlice';
@@ -223,7 +223,7 @@ const ApplyLeave = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="flex flex-col lg:flex-row gap-6">
                 {successModal.open && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -481,7 +481,7 @@ const ApplyLeave = () => {
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
+        </>
     );
 };
 
