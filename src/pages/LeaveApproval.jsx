@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
-import { Check, X, Eye, Loader2, AlertCircle, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { Check, X, Eye, Loader2, AlertCircle, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
-import { useGetAllLeavesQuery, useUpdateLeaveStatusMutation } from '../store/api/leaveApi';
+import { useGetAllLeavesQuery, useUpdateLeaveStatusMutation, useLazyGetLeaveDetailQuery } from '../store/api/leaveApi';
 
 const LeaveApproval = () => {
-    const { data: leaves = [], isLoading, isError, refetch } = useGetAllLeavesQuery();
-    const [updateStatus, { isLoading: updating }] = useUpdateLeaveStatusMutation();
+    const [page, setPage] = useState(1);
+    const [limit] = useState(5);
     const [filterStatus, setFilterStatus] = useState('Pending');
+    const [sortBy, setSortBy] = useState('createdAt');
+    const [order, setOrder] = useState('desc');
+
+    const { data, isLoading, isError, refetch } = useGetAllLeavesQuery({
+        page,
+        limit,
+        status: filterStatus,
+        sortBy,
+        order
+    });
+
+    const leaves = data?.leaves || [];
+    const pagination = data?.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 };
+
+    const [updateStatus, { isLoading: updating }] = useUpdateLeaveStatusMutation();
+    const [triggerGetDetail] = useLazyGetLeaveDetailQuery();
     const [successModal, setSuccessModal] = useState({ open: false, message: '' });
     const [errorModal, setErrorModal] = useState({ open: false, message: '' });
+    const [detailModal, setDetailModal] = useState({ open: false, data: null, loading: false });
 
     const handleUpdateStatus = async (leaveId, status) => {
         try {
@@ -35,9 +52,41 @@ const LeaveApproval = () => {
         });
     };
 
-    const filteredLeaves = leaves.filter(leave =>
-        filterStatus === 'All' ? true : leave.status === filterStatus
-    ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const handleFilterStatusChange = (status) => {
+        setFilterStatus(status);
+        setPage(1); // Reset to first page when filter changes
+    };
+
+    const handleSort = (field) => {
+        if (sortBy === field) {
+            setOrder(order === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(field);
+            setOrder('desc');
+        }
+        setPage(1);
+    };
+
+    const handleViewDetails = async (leave) => {
+        const initialName = leave.user?.name || leave.userName || 'Unknown User';
+        setDetailModal({
+            open: true,
+            data: { ...leave, userName: initialName },
+            loading: true
+        });
+        try {
+            const res = await triggerGetDetail(leave._id).unwrap();
+            setDetailModal({
+                open: true,
+                data: { ...res, userName: res.user?.name || res.userName || initialName },
+                loading: false
+            });
+        } catch (err) {
+            console.error('Failed to fetch leave details:', err);
+            setDetailModal({ open: false, data: null, loading: false });
+            setErrorModal({ open: true, message: 'Failed to load leave details.' });
+        }
+    };
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -81,7 +130,7 @@ const LeaveApproval = () => {
                         {['Pending', 'Approved', 'Rejected', 'All'].map((status) => (
                             <button
                                 key={status}
-                                onClick={() => setFilterStatus(status)}
+                                onClick={() => handleFilterStatusChange(status)}
                                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${filterStatus === status
                                     ? 'bg-indigo-600 text-white shadow-sm'
                                     : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50'
@@ -108,7 +157,7 @@ const LeaveApproval = () => {
                                 Try Again
                             </button>
                         </div>
-                    ) : filteredLeaves.length === 0 ? (
+                    ) : leaves.length === 0 ? (
                         <div className="p-20 flex flex-col items-center justify-center gap-4 text-gray-400">
                             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
                                 <CheckCircle2 className="w-10 h-10 opacity-20" />
@@ -120,16 +169,46 @@ const LeaveApproval = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50/50 border-b border-gray-100">
-                                        <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Employee</th>
+                                        <th
+                                            className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-indigo-600 transition-colors group/h"
+                                            onClick={() => handleSort('userName')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Employee
+                                                <span className={`transition-all ${sortBy === 'userName' ? 'opacity-100 text-indigo-600' : 'opacity-0 group-hover/h:opacity-50'}`}>
+                                                    {sortBy === 'userName' && order === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            </div>
+                                        </th>
                                         <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Leave Type</th>
-                                        <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Duration</th>
-                                        <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Dates</th>
-                                        <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
+                                        <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Duration</th>
+                                        <th
+                                            className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-indigo-600 transition-colors group/h"
+                                            onClick={() => handleSort('startDate')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Dates
+                                                <span className={`transition-all ${sortBy === 'startDate' ? 'opacity-100 text-indigo-600' : 'opacity-0 group-hover/h:opacity-50'}`}>
+                                                    {sortBy === 'startDate' && order === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th
+                                            className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-center cursor-pointer hover:text-indigo-600 transition-colors group/h"
+                                            onClick={() => handleSort('status')}
+                                        >
+                                            <div className="flex items-center justify-center gap-1">
+                                                Status
+                                                <span className={`transition-all ${sortBy === 'status' ? 'opacity-100 text-indigo-600' : 'opacity-0 group-hover/h:opacity-50'}`}>
+                                                    {sortBy === 'status' && order === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            </div>
+                                        </th>
                                         <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
-                                    {filteredLeaves.map((leave) => (
+                                    {leaves.map((leave) => (
                                         <tr key={leave._id} className="hover:bg-gray-50/50 transition-colors group">
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-3">
@@ -200,7 +279,11 @@ const LeaveApproval = () => {
                                                     ) : (
                                                         <span className="text-xs text-gray-300 font-medium italic pr-2">Processed</span>
                                                     )}
-                                                    <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                                    <button
+                                                        onClick={() => handleViewDetails(leave)}
+                                                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                        title="View Details"
+                                                    >
                                                         <Eye size={18} />
                                                     </button>
                                                 </div>
@@ -209,6 +292,43 @@ const LeaveApproval = () => {
                                     ))}
                                 </tbody>
                             </table>
+
+                            {/* Pagination Controls */}
+                            <div className="px-6 py-4 flex items-center justify-between border-t border-gray-50 bg-gray-50/30">
+                                <div className="text-xs font-medium text-gray-500">
+                                    Showing <span className="text-gray-800 font-bold">{Math.min(page * limit, pagination.currentPage)}</span> of <span className="text-gray-800 font-bold">{pagination.totalPages}</span> entries
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                                        disabled={page === 1}
+                                        className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronLeft size={18} />
+                                    </button>
+
+                                    {[...Array(pagination.totalPages)].map((_, i) => (
+                                        <button
+                                            key={i + 1}
+                                            onClick={() => setPage(i + 1)}
+                                            className={`w-8 h-8 text-xs font-bold rounded-lg transition-all ${page === i + 1
+                                                ? 'bg-indigo-600 text-white shadow-sm'
+                                                : 'text-gray-500 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-gray-100'
+                                                }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                                        disabled={page === pagination.totalPages}
+                                        className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronRight size={18} />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -249,6 +369,114 @@ const LeaveApproval = () => {
                             >
                                 Understand
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Detail Modal */}
+                {detailModal.open && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailModal({ open: false, data: null, loading: false })} />
+                        <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scaleIn transform">
+                            <div className="bg-indigo-600 px-6 py-4 flex items-center justify-between">
+                                <h3 className="text-white font-bold text-lg">Leave Request Details</h3>
+                                <button onClick={() => setDetailModal({ open: false, data: null, loading: false })} className="text-white/80 hover:text-white transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="p-6">
+                                {detailModal.loading ? (
+                                    <div className="py-12 flex flex-col items-center justify-center gap-4">
+                                        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+                                        <p className="text-gray-500 font-medium">Fetching details...</p>
+                                    </div>
+                                ) : detailModal.data ? (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                            <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xl">
+                                                {(detailModal.data.userName || 'U').charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="text-lg font-bold text-gray-800">{detailModal.data.userName}</p>
+                                                <p className="text-sm text-indigo-600 font-semibold">{detailModal.data.leaveType}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Duration</p>
+                                                <p className="text-gray-700 font-semibold">
+                                                    {detailModal.data.leaveDuration || detailModal.data.duration || 1} Days
+                                                    {detailModal.data.isHalfDay && <span className="ml-2 text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-black uppercase">{detailModal.data.partOfDay}</span>}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1 text-right">
+                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status</p>
+                                                <span className={`px-3 py-1 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5 border ${getStatusStyle(detailModal.data.status)}`}>
+                                                    {getStatusIcon(detailModal.data.status)}
+                                                    {detailModal.data.status.toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Start Date</p>
+                                                <p className="text-gray-700 font-medium">{formatDate(detailModal.data.startDate)}</p>
+                                            </div>
+                                            <div className="space-y-1 text-right">
+                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">End Date</p>
+                                                <p className="text-gray-700 font-medium">{formatDate(detailModal.data.endDate || detailModal.data.startDate)}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1 pb-4 border-b border-gray-100">
+                                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Reason for Leave</p>
+                                            <p className="text-gray-700 text-sm leading-relaxed italic">
+                                                "{detailModal.data.reason || 'No reason provided'}"
+                                            </p>
+                                        </div>
+
+                                        <div className="flex justify-between items-center text-[10px] text-gray-400 font-medium pt-2">
+                                            <p>ID: {detailModal.data._id}</p>
+                                            <p>Applied on {formatDate(detailModal.data.createdAt)}</p>
+                                        </div>
+
+                                        <div className="pt-4 flex gap-3">
+                                            {detailModal.data.status === 'Pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            handleUpdateStatus(detailModal.data._id, 'Approved');
+                                                            setDetailModal({ open: false, data: null, loading: false });
+                                                        }}
+                                                        className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Check size={18} /> Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            handleUpdateStatus(detailModal.data._id, 'Rejected');
+                                                            setDetailModal({ open: false, data: null, loading: false });
+                                                        }}
+                                                        className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2"
+                                                    >
+                                                        <X size={18} /> Reject
+                                                    </button>
+                                                </>
+                                            )}
+                                            <button
+                                                onClick={() => setDetailModal({ open: false, data: null, loading: false })}
+                                                className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all"
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-12 text-center text-gray-400">
+                                        Could not load details.
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

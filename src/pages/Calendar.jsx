@@ -6,7 +6,8 @@ import { useGetAllLeavesQuery } from '../store/api/leaveApi';
 const CalendarPage = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
 
-    const { data: allLeaves = [], isLoading, isError } = useGetAllLeavesQuery();
+    const { data, isLoading, isError } = useGetAllLeavesQuery({ limit: 1000 });
+    const allLeaves = data?.leaves || [];
 
     const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = [

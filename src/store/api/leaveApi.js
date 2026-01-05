@@ -29,9 +29,19 @@ export const leaveApi = createApi({
             transformResponse: (response) => response.data,
         }),
         getAllLeaves: builder.query({
-            query: () => '/api/leaves',
+            query: (params = {}) => {
+                const { page = 1, limit = 10, status = 'All', sortBy = 'createdAt', order = 'desc' } = params;
+                let url = `/api/leaves?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`;
+                if (status && status !== 'All') {
+                    url += `&status=${status}`;
+                }
+                return url;
+            },
             providesTags: ['Leaves'],
-            transformResponse: (response) => response.data || [],
+            transformResponse: (response) => ({
+                leaves: response.data || [],
+                pagination: response.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 }
+            }),
         }),
         applyLeave: builder.mutation({
             query: ({ userId, payload }) => ({

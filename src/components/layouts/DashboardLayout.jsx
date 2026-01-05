@@ -183,7 +183,7 @@ const DashboardLayout = ({ children }) => {
                             </div>
                         )}
 
-                        {isAdmin && (
+                        {/* {isAdmin && (
                             <SidebarLink
                                 icon={CheckCircle2}
                                 label="Leave Approval"
@@ -191,7 +191,7 @@ const DashboardLayout = ({ children }) => {
                                 active={location.pathname === '/admin/leave-approval'}
                                 collapsed={isCollapsed}
                             />
-                        )}
+                        )} */}
 
                         <SidebarLink icon={Home} label="Work From Home" to="#" collapsed={isCollapsed} />
                         <SidebarItem icon={BarChart2} label="KPI" hasSubmenu collapsed={isCollapsed} />
