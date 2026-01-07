@@ -110,5 +110,6 @@ export const getDashboardData = (userId) => api.get(`/api/dashboard/${userId}`);
 // Profile endpoints
 export const getProfile = () => api.get('/api/users/me');
 export const updateProfile = (userId, data) => api.patch(`/api/users/${userId}`, data);
+export const getAllUsers = () => api.get('/api/users');
 
 export default api;

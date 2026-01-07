@@ -9,6 +9,9 @@ import LeaveDetails from '../pages/LeaveDetails';
 import LeaveApproval from '../pages/LeaveApproval';
 import DocumentSharing from '../pages/DocumentSharing';
 import CalendarPage from '../pages/Calendar';
+import Projects from '../pages/Projects';
+import ProjectDetails from '../pages/ProjectDetails';
+
 import ProtectedRoute from '../components/auth/ProtectedRoute';
 import PublicRoute from '../components/auth/PublicRoute';
 import RoleRoute from '../components/auth/RoleRoute';
@@ -37,6 +40,9 @@ const AppRoutes = () => {
                 </ProtectedRoute>
             }>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/:id" element={<ProjectDetails />} />
+
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/leave/apply" element={<ApplyLeave />} />

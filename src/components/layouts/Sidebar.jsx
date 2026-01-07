@@ -109,7 +109,13 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                             active={location.pathname === '/calendar'}
                             collapsed={isCollapsed}
                         />
-                        <SidebarLink icon={Briefcase} label="Projects" to="#" collapsed={isCollapsed} />
+                        <SidebarLink
+                            icon={Briefcase}
+                            label="Projects"
+                            to="/projects"
+                            active={location.pathname === '/projects'}
+                            collapsed={isCollapsed}
+                        />
                         <SidebarLink icon={FileText} label="Document Sharing" to="/document-sharing" active={location.pathname === '/document-sharing'} collapsed={isCollapsed} />
                         <SidebarLink icon={Users} label="Attendance" to="#" collapsed={isCollapsed} />
                         <SidebarItem icon={Timer} label="Timesheet" hasSubmenu collapsed={isCollapsed} />
