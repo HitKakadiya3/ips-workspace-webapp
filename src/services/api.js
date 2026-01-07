@@ -96,6 +96,12 @@ api.interceptors.response.use(
                 isRefreshing = false;
             }
         }
+
+        if (error.response?.status === 403) {
+            window.location.replace('/unauthorized');
+        }
+
+
         return Promise.reject(error);
     }
 );

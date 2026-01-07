@@ -11,6 +11,8 @@ import DocumentSharing from '../pages/DocumentSharing';
 import CalendarPage from '../pages/Calendar';
 import Projects from '../pages/Projects';
 import ProjectDetails from '../pages/ProjectDetails';
+import Unauthorized from '../pages/Unauthorized';
+
 
 import ProtectedRoute from '../components/auth/ProtectedRoute';
 import PublicRoute from '../components/auth/PublicRoute';
@@ -54,7 +56,9 @@ const AppRoutes = () => {
                 } />
                 <Route path="/document-sharing" element={<DocumentSharing />} />
             </Route>
+            <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
+
     );
 };
 
