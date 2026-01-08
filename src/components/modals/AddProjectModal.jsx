@@ -6,12 +6,16 @@ import { getAllUsers } from '../../services/api';
 const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
     const [formData, setFormData] = useState({
         name: '',
-        pm: '',
-        client: '',
+        pmName: '',
+        clientName: '',
         status: 'In Progress',
-        type: 'Dedicated',
+        projectType: 'Dedicated',
+        startDate: new Date().toISOString().split('T')[0],
+        deadline: '',
+        isBillable: true,
         assignees: []
     });
+
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
 
@@ -20,8 +24,10 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
         const fetchUsers = async () => {
             try {
                 const response = await getAllUsers();
-                const usersData = response.data.data || response.data;
+                // Handle different possible response structures
+                const usersData = response.data?.data || response.data?.users || response.data;
                 setUsers(Array.isArray(usersData) ? usersData : []);
+
             } catch (error) {
                 console.error('Error fetching users:', error);
                 setUsers([]);
@@ -38,12 +44,13 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
     if (!isOpen) return null;
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
         }));
     };
+
 
     const handleAssigneeChange = (e) => {
         const userId = e.target.value;
@@ -64,8 +71,9 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
         if (formData.assignees.length === 0) return 'Select Users';
         return users
             .filter(u => formData.assignees.includes(u._id || u.id))
-            .map(u => u.name)
+            .map(u => u.name || u.fullName || u.pmName || u.username || 'Unknown')
             .join(', ');
+
     };
 
     const handleSubmit = async (e) => {
@@ -76,12 +84,16 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
             onClose();
             setFormData({
                 name: '',
-                pm: '',
-                client: '',
+                pmName: '',
+                clientName: '',
                 status: 'In Progress',
-                type: 'Dedicated',
+                projectType: 'Dedicated',
+                startDate: new Date().toISOString().split('T')[0],
+                deadline: '',
+                isBillable: true,
                 assignees: []
             });
+
             setIsDropdownOpen(false);
         } catch (error) {
             console.error('Error adding project:', error);
@@ -125,9 +137,9 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
                         </label>
                         <input
                             type="text"
-                            name="pm"
+                            name="pmName"
                             required
-                            value={formData.pm}
+                            value={formData.pmName}
                             onChange={handleChange}
                             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             placeholder="Enter project manager name"
@@ -140,14 +152,15 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
                         </label>
                         <input
                             type="text"
-                            name="client"
+                            name="clientName"
                             required
-                            value={formData.client}
+                            value={formData.clientName}
                             onChange={handleChange}
                             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             placeholder="Enter client name"
                         />
                     </div>
+
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -171,8 +184,8 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
                                 Type
                             </label>
                             <select
-                                name="type"
-                                value={formData.type}
+                                name="projectType"
+                                value={formData.projectType}
                                 onChange={handleChange}
                                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             >
@@ -182,6 +195,51 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
                             </select>
                         </div>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Start Date
+                            </label>
+                            <input
+                                type="date"
+                                name="startDate"
+                                required
+                                value={formData.startDate}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Deadline
+                            </label>
+                            <input
+                                type="date"
+                                name="deadline"
+                                required
+                                value={formData.deadline}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 py-2">
+                        <input
+                            type="checkbox"
+                            id="isBillable"
+                            name="isBillable"
+                            checked={formData.isBillable}
+                            onChange={handleChange}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="isBillable" className="text-sm font-medium text-gray-700 cursor-pointer">
+                            Is this a Billable Project?
+                        </label>
+                    </div>
+
 
                     <div className="relative">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -220,8 +278,9 @@ const AddProjectModal = ({ isOpen, onClose, onAdd }) => {
                                                 className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                             />
                                             <span className="font-normal block truncate text-gray-900">
-                                                {user.name}
+                                                {user.name || user.fullName || user.pmName || user.username || 'Unknown'}
                                             </span>
+
                                         </label>
                                     );
                                 })}

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Search, RotateCcw, Eye, Plus } from 'lucide-react';
-import { getProjects, createProject } from '../services/projectService';
-import AddProjectModal from '../components/modals/AddProjectModal';
+import { getProjects } from '../services/projectService';
+
 
 const Projects = () => {
     const [projects, setProjects] = useState([]);
@@ -15,7 +15,6 @@ const Projects = () => {
     });
     const navigate = useNavigate();
 
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     // Get user role from local storage
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -63,15 +62,7 @@ const Projects = () => {
         });
     };
 
-    const handleAddProject = async (projectData) => {
-        try {
-            const response = await createProject(projectData);
-            const newProject = response.data || response;
-            setProjects(prev => [...prev, newProject]);
-        } catch (error) {
-            console.error('Error creating project:', error);
-        }
-    };
+
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -90,12 +81,13 @@ const Projects = () => {
                 <div className="flex items-center gap-3">
                     {isAdmin && (
                         <button
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                            onClick={() => navigate('/projects/create')}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-medium shadow-lg shadow-indigo-100 active:scale-95"
                         >
-                            <Plus size={18} />
+                            <Plus size={20} />
                             Add Project
                         </button>
+
                     )}
                     <img
                         src={`https://ui-avatars.com/api/?name=${user.name || 'User'}&background=random`}
@@ -224,12 +216,6 @@ const Projects = () => {
                     </table>
                 </div>
             </div>
-
-            <AddProjectModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                onAdd={handleAddProject}
-            />
         </div>
     );
 };

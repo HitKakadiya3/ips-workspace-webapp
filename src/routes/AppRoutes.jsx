@@ -11,7 +11,9 @@ import DocumentSharing from '../pages/DocumentSharing';
 import CalendarPage from '../pages/Calendar';
 import Projects from '../pages/Projects';
 import ProjectDetails from '../pages/ProjectDetails';
+import CreateProject from '../pages/CreateProject';
 import Unauthorized from '../pages/Unauthorized';
+
 
 
 import ProtectedRoute from '../components/auth/ProtectedRoute';
@@ -44,6 +46,8 @@ const AppRoutes = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetails />} />
+                <Route path="/projects/create" element={<CreateProject />} />
+
 
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/profile" element={<Profile />} />
