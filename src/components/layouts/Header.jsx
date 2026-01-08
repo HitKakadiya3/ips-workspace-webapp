@@ -30,7 +30,12 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, setIsCollapsed, 
                             location.pathname === '/leave/details' ? 'Leave Details' :
                                 location.pathname === '/document-sharing' ? 'All Documents' :
                                     location.pathname === '/admin/leave-approval' ? 'Leave Approvals' :
-                                        location.pathname === '/calendar' ? 'Calendar' : 'Dashboard'}
+                                        location.pathname === '/calendar' ? 'Calendar' :
+                                            location.pathname === '/projects' ? 'Project List' :
+                                                location.pathname === '/projects/create' ? 'Create Project' :
+                                                    location.pathname.startsWith('/projects/') ? 'Project Details' :
+                                                        location.pathname === '/timesheet/add' ? 'Add Timesheet' :
+                                                            location.pathname === '/timesheet/details' ? 'Timesheet Details' : 'Dashboard'}
                 </h2>
             </div>
 

@@ -59,6 +59,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
     const location = useLocation();
     const isAdmin = user.role === 'Admin';
     const isLeaveManagementActive = location.pathname.startsWith('/leave');
+    const isTimesheetActive = location.pathname.startsWith('/timesheet');
 
     return (
         <>
@@ -118,7 +119,34 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                         />
                         <SidebarLink icon={FileText} label="Document Sharing" to="/document-sharing" active={location.pathname === '/document-sharing'} collapsed={isCollapsed} />
                         <SidebarLink icon={Users} label="Attendance" to="#" collapsed={isCollapsed} />
-                        <SidebarItem icon={Timer} label="Timesheet" hasSubmenu collapsed={isCollapsed} />
+
+                        {/* Timesheet with Submenu */}
+                        <SidebarItem
+                            icon={Timer}
+                            label="Timesheet"
+                            hasSubmenu
+                            collapsed={isCollapsed}
+                            isOpen={openMenus.timesheet}
+                            onClick={() => toggleMenu('timesheet')}
+                            active={isTimesheetActive}
+                        />
+                        {(openMenus.timesheet || isTimesheetActive) && !isCollapsed && (
+                            <div className="bg-gray-900/50">
+                                <SubMenuItem
+                                    label="Add Timesheet"
+                                    to="/timesheet/add"
+                                    active={location.pathname === '/timesheet/add'}
+                                    collapsed={isCollapsed}
+                                />
+                                <SubMenuItem
+                                    label="Timesheet Details"
+                                    to="/timesheet/details"
+                                    active={location.pathname === '/timesheet/details'}
+                                    collapsed={isCollapsed}
+                                />
+                            </div>
+                        )}
+
                         <SidebarItem icon={Users} label="Client Timesheet" hasSubmenu collapsed={isCollapsed} />
 
                         {/* Leave Management with Submenu */}
