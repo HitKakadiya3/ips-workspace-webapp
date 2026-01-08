@@ -95,11 +95,41 @@ const Dashboard = () => {
         leavesNext5Days: lists.leavesNext5Days || []
     };
 
-    const handleDownload = (file) => {
+    const handleDownload = async (file) => {
         if (!file || !file.path) return;
+
         const fileName = file.path.split('\\').pop() || file.path.split('/').pop();
         const downloadUrl = `http://localhost:5000/uploads/documents/${fileName}`;
-        window.open(downloadUrl, '_blank');
+
+        try {
+            // Fetch the file as a blob
+            const response = await fetch(downloadUrl, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Download failed');
+
+            const blob = await response.blob();
+
+            // Create object URL from blob
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            // Create temporary anchor and trigger download
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = file.originalName || fileName;
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Failed to download file. Please try again.');
+        }
     };
 
     return (

@@ -30,8 +30,31 @@ const Projects = () => {
             };
             const response = await getProjects(filters, userContext);
             // Handle different possible response structures
-            const projectsData = response.data || response;
-            setProjects(Array.isArray(projectsData) ? projectsData : []);
+            let projectsData = response.data || response;
+            projectsData = Array.isArray(projectsData) ? projectsData : [];
+
+            // CLIENT-SIDE FILTER WORKAROUND (until backend is fixed)
+            // Filter by status if not 'all'
+            if (filters.status !== 'all') {
+                projectsData = projectsData.filter(p => p.status === filters.status);
+            }
+
+            // Filter by type if not 'all'
+            if (filters.type !== 'all') {
+                projectsData = projectsData.filter(p => p.projectType === filters.type);
+            }
+
+            // Filter by search term
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                projectsData = projectsData.filter(p =>
+                    p.name?.toLowerCase().includes(searchLower) ||
+                    p.clientName?.toLowerCase().includes(searchLower) ||
+                    p.pmName?.toLowerCase().includes(searchLower)
+                );
+            }
+
+            setProjects(projectsData);
         } catch (error) {
             console.error('Error fetching projects:', error);
         } finally {
