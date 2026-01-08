@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bold, Italic, Underline, List, ListOrdered, Code, Highlighter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TimePicker from '../components/ui/TimePicker';
+import { getProjects } from '../services/projectService';
 
 const AddTimesheet = () => {
     const navigate = useNavigate();
@@ -12,6 +13,9 @@ const AddTimesheet = () => {
         billingType: 'Billable',
         description: ''
     });
+
+    const [projectList, setProjectList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Hours tracking - Total is always 8:30 per day
     const TOTAL_HOURS_PER_DAY = 8.5; // 8 hours 30 minutes
@@ -38,41 +42,40 @@ const AddTimesheet = () => {
     const filledHours = formatHoursToTime(filledHoursDecimal);
     const availableHours = formatHoursToTime(availableHoursDecimal);
 
-    // Fetch filled hours for today on component mount
+    // Fetch data on component mount
     useEffect(() => {
-        const fetchFilledHours = async () => {
+        const loadInitialData = async () => {
+            setIsLoading(true);
             try {
+                // 1. Fetch User Info
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+                // 2. Fetch Projects
+                const response = await getProjects({}, {
+                    role: user.role,
+                    userId: user.id || user._id
+                });
+                // Handle direct array or { data: [...] } structure
+                const projectsData = response?.data || response;
+                setProjectList(Array.isArray(projectsData) ? projectsData : []);
+
+                // 3. Fetch Filled Hours for today
                 // TODO: Replace with actual API call
-                // const response = await api.get('/api/timesheet/today');
-                // const todayEntries = response.data;
-
-                // Mock data - simulate existing timesheet entries for today
-                const todayEntries = [
-                    // { timeEntry: '02:30' },
-                    // { timeEntry: '01:15' }
-                ];
-
-                // Calculate total filled hours
+                const todayEntries = []; // Mock
                 const totalFilled = todayEntries.reduce((sum, entry) => {
                     return sum + timeToDecimal(entry.timeEntry);
                 }, 0);
-
                 setFilledHoursDecimal(totalFilled);
+
             } catch (error) {
-                console.error('Error fetching filled hours:', error);
+                console.error('Error loading initial data:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        fetchFilledHours();
+        loadInitialData();
     }, []);
-
-    // Mock data - replace with API calls
-    const projects = [
-        'FutureStack Labs',
-        'Laravel Team Sessions',
-        'EnProwess Projects',
-        'CG Meeting'
-    ];
 
     const tasks = [
         'Development',
@@ -158,9 +161,11 @@ const AddTimesheet = () => {
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm text-gray-600 bg-white"
                             required
                         >
-                            <option value="">Select Project</option>
-                            {projects.map((project, idx) => (
-                                <option key={idx} value={project}>{project}</option>
+                            <option value="">{isLoading ? 'Loading projects...' : 'Select Project'}</option>
+                            {projectList.map((project) => (
+                                <option key={project._id || project.id} value={project._id || project.id}>
+                                    {project.name}
+                                </option>
                             ))}
                         </select>
                     </div>
