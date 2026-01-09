@@ -3,6 +3,7 @@ import { Bold, Italic, Underline, List, ListOrdered, Code, Highlighter } from 'l
 import { useNavigate } from 'react-router-dom';
 import TimePicker from '../components/ui/TimePicker';
 import { getProjects } from '../services/projectService';
+import { useAddTimesheetMutation } from '../store/api/timesheetApi';
 
 const AddTimesheet = () => {
     const navigate = useNavigate();
@@ -13,6 +14,8 @@ const AddTimesheet = () => {
         billingType: 'Billable',
         description: ''
     });
+
+    const [addTimesheet, { isLoading: isSubmitting }] = useAddTimesheetMutation();
 
     const [projectList, setProjectList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -110,9 +113,36 @@ const AddTimesheet = () => {
         }
 
         console.log('Timesheet data:', formData);
-        // TODO: Add API call to save timesheet
-        // After successful save, update filled hours
-        // setFilledHoursDecimal(prev => prev + entryHours);
+
+        const saveTimesheet = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const userId = user.id || user._id;
+
+                if (!userId) {
+                    alert('User details not found. Please login again.');
+                    return;
+                }
+
+                const payload = {
+                    user: userId,
+                    project: formData.project,
+                    task: formData.task,
+                    timeEntry: formData.timeEntry,
+                    billingType: formData.billingType,
+                    description: formData.description
+                };
+
+                await addTimesheet(payload).unwrap();
+                alert('Timesheet added successfully!');
+                navigate('/timesheet/details');
+            } catch (error) {
+                console.error('Error saving timesheet:', error);
+                alert(error?.data?.message || 'Failed to save timesheet. Please try again.');
+            }
+        };
+
+        saveTimesheet();
     };
 
     const formatToolbarButton = (Icon, title) => (
@@ -274,9 +304,10 @@ const AddTimesheet = () => {
                 <div className="flex justify-start">
                     <button
                         type="submit"
-                        className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-semibold shadow-lg shadow-indigo-100 active:scale-95"
+                        disabled={isSubmitting}
+                        className={`px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-semibold shadow-lg shadow-indigo-100 active:scale-95 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        Save
+                        {isSubmitting ? 'Saving...' : 'Save'}
                     </button>
                 </div>
             </form>

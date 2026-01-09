@@ -9,17 +9,65 @@ const TimesheetDetails = () => {
 
     // Mock data based on the image
     const timesheetData = [
-        { id: 1, project: 'FutureStack Labs', type: 'NB', task: 'Node.Js', employee: 'Hitendra Kakadiya', date: '07-01-2026', time: '00:30:00' },
-        { id: 2, project: 'FutureStack Labs', type: 'NB', task: 'React.JS', employee: 'Hitendra Kakadiya', date: '07-01-2026', time: '02:00:00' },
-        { id: 3, project: 'FutureStack Labs', type: 'NB', task: 'Node.Js', employee: 'Hitendra Kakadiya', date: '07-01-2026', time: '02:00:00' },
-        { id: 4, project: 'FutureStack Labs', type: 'NB', task: 'React.JS', employee: 'Hitendra Kakadiya', date: '07-01-2026', time: '02:00:00' },
-        { id: 5, project: 'FutureStack Labs', type: 'NB', task: 'Node.Js', employee: 'Hitendra Kakadiya', date: '07-01-2026', time: '02:00:00' },
-        { id: 6, project: 'FutureStack Labs', type: 'NB', task: 'React.JS', employee: 'Hitendra Kakadiya', date: '06-01-2026', time: '00:30:00' },
-        { id: 7, project: 'FutureStack Labs', type: 'NB', task: 'Node.Js', employee: 'Hitendra Kakadiya', date: '06-01-2026', time: '02:00:00' },
-        { id: 8, project: 'FutureStack Labs', type: 'NB', task: 'React.JS', employee: 'Hitendra Kakadiya', date: '06-01-2026', time: '02:00:00' },
-        { id: 9, project: 'FutureStack Labs', type: 'NB', task: 'Node.Js', employee: 'Hitendra Kakadiya', date: '06-01-2026', time: '02:00:00' },
-        { id: 10, project: 'FutureStack Labs', type: 'NB', task: 'Node.Js', employee: 'Hitendra Kakadiya', date: '06-01-2026', time: '02:00:00' },
-        { id: 11, project: 'FutureStack Labs', type: 'NB', task: 'Node.Js', employee: 'Hitendra Kakadiya', date: '05-01-2026', time: '02:00:00' },
+        {
+            id: 1,
+            project: 'FutureStack Labs',
+            type: 'NB',
+            task: 'Node.Js',
+            employee: 'Hitendra Kakadiya',
+            date: '08-01-2026',
+            time: '00:30:00',
+            description: ['Started working on UI for Timesheet Details page']
+        },
+        {
+            id: 2,
+            project: 'FutureStack Labs',
+            type: 'NB',
+            task: 'React.JS',
+            employee: 'Hitendra Kakadiya',
+            date: '08-01-2026',
+            time: '02:00:00',
+            description: [
+                'Worked on UI for Add Timesheet (Employee page)',
+                'Integrated Project Listing API with Add Timesheet page and debugged projectList map is not a function error.'
+            ]
+        },
+        {
+            id: 3,
+            project: 'FutureStack Labs',
+            type: 'NB',
+            task: 'Node.Js',
+            employee: 'Hitendra Kakadiya',
+            date: '08-01-2026',
+            time: '02:00:00',
+            description: [
+                'Integrated rate limiting using Redis across selected APIs.',
+                'Learned about storing user sessions in Redis and implemented session storage in APIs.'
+            ]
+        },
+        {
+            id: 4,
+            project: 'FutureStack Labs',
+            type: 'NB',
+            task: 'React.JS',
+            employee: 'Hitendra Kakadiya',
+            date: '08-01-2026',
+            time: '02:00:00',
+            description: [
+                'Implemented search and filter functionality in Project Assigning APIs.',
+                'Started learning Redis based rate limiting and its use cases.'
+            ]
+        },
+        {
+            id: 5,
+            project: 'FutureStack Labs',
+            type: 'NB',
+            task: 'Node.Js',
+            employee: 'Hitendra Kakadiya',
+            date: '08-01-2026',
+            time: '02:00:00',
+            description: ['Setting up initial Redis structure and cacheAccess class.']
+        },
     ];
 
     const stats = {
@@ -80,8 +128,8 @@ const TimesheetDetails = () => {
                             key={label}
                             onClick={() => setStatus(label)}
                             className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${status === label
-                                    ? 'bg-indigo-600 text-white shadow-md'
-                                    : 'text-gray-500 hover:bg-white hover:text-gray-700'
+                                ? 'bg-indigo-600 text-white shadow-md'
+                                : 'text-gray-500 hover:bg-white hover:text-gray-700'
                                 }`}
                         >
                             {label} ({count})
@@ -127,7 +175,21 @@ const TimesheetDetails = () => {
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{row.type}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{row.task}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm text-gray-700 font-medium">{row.task}</span>
+                                            {showDescription && row.description && row.description.length > 0 && (
+                                                <ul className="list-none space-y-0.5">
+                                                    {row.description.map((desc, index) => (
+                                                        <li key={index} className="text-[13px] text-gray-500 leading-relaxed flex items-start gap-1">
+                                                            <span className="mt-1.5 w-1 h-1 rounded-full bg-gray-300 shrink-0" />
+                                                            <span>{desc}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{row.employee}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{row.date}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600 font-medium">{row.time}</td>
