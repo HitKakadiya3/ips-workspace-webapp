@@ -17,15 +17,18 @@ export const timesheetApi = createApi({
         getTimesheets: builder.query({
             query: (params = {}) => {
                 const { userId, status = 'All' } = params;
-                let url = `/api/timesheets`;
-                if (userId) url += `/user/${userId}`;
-                if (status && status !== 'All') {
-                    url += `${url.includes('?') ? '&' : '?'}status=${status}`;
-                }
-                return url;
+                const url = userId ? `/api/timesheets/user/${userId}` : '/api/timesheets';
+                const qp = status && status !== 'All' ? { status } : undefined;
+                return { url, params: qp };
             },
             providesTags: ['Timesheets'],
-            transformResponse: (response) => response.data || [],
+            transformResponse: (response) => {
+                // Normalize response: prefer `response.data` when present (can be an object with pending/approved/rejected),
+                // otherwise return the response or an empty object/array.
+                if (!response) return {};
+                if (response.data !== undefined) return response.data;
+                return response;
+            },
         }),
         addTimesheet: builder.mutation({
             query: (payload) => ({
