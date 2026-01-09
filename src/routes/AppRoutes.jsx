@@ -13,6 +13,7 @@ import Projects from '../pages/Projects';
 import ProjectDetails from '../pages/ProjectDetails';
 import CreateProject from '../pages/CreateProject';
 import AddTimesheet from '../pages/AddTimesheet';
+import TimesheetDetails from '../pages/TimesheetDetails';
 import Unauthorized from '../pages/Unauthorized';
 
 
@@ -61,6 +62,7 @@ const AppRoutes = () => {
                 } />
                 <Route path="/document-sharing" element={<DocumentSharing />} />
                 <Route path="/timesheet/add" element={<AddTimesheet />} />
+                <Route path="/timesheet/details" element={<TimesheetDetails />} />
             </Route>
             <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
