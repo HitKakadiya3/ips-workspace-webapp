@@ -172,7 +172,7 @@ const AdminApproveTimesheet = () => {
                                         <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Project</th>
                                         <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Task</th>
                                         <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                                        <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Time</th>
+                                        <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Hours</th>
                                         <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
                                         <th className="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                                     </tr>
@@ -201,7 +201,7 @@ const AdminApproveTimesheet = () => {
                                                 <span className="text-sm text-gray-500 font-medium">{formatDate(timesheet.date || timesheet.createdAt)}</span>
                                             </td>
                                             <td className="py-4 px-6">
-                                                <span className="text-sm text-gray-700 font-bold">{formatField(timesheet.timeEntry || timesheet.time)}</span>
+                                                <span className="text-sm text-gray-700 font-bold">{formatField(timesheet.hours)}</span>
                                             </td>
                                             <td className="py-4 px-6">
                                                 <div className="flex justify-center">
@@ -288,158 +288,235 @@ const AdminApproveTimesheet = () => {
                         </div>
                     )}
                 </div>
+            </div>
 
-                {/* Success Modal */}
-                {successModal.open && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSuccessModal({ open: false, message: '' })} />
-                        <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center animate-scaleIn transform">
-                            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+            {/* Success Modal */}
+            {successModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setSuccessModal({ open: false, message: '' })} />
+                    <div className="relative bg-gradient-to-br from-white to-emerald-50/30 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn transform">
+                        {/* Decorative background elements */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-400/10 rounded-full blur-3xl"></div>
+
+                        <div className="relative p-8 text-center">
+                            {/* Animated icon container */}
+                            <div className="relative inline-block mb-6">
+                                <div className="absolute inset-0 bg-emerald-200/50 rounded-full blur-xl animate-pulse"></div>
+                                <div className="relative w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30 animate-bounce-slow">
+                                    <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={2.5} />
+                                </div>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-2">Operation Successful</h3>
-                            <p className="text-gray-500 mb-8">{successModal.message}</p>
+
+                            <h3 className="text-2xl font-bold text-gray-800 mb-3">Success!</h3>
+                            <p className="text-gray-600 mb-8 leading-relaxed">{successModal.message}</p>
+
                             <button
                                 onClick={() => setSuccessModal({ open: false, message: '' })}
-                                className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                                className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transform hover:scale-[1.02] active:scale-[0.98]"
                             >
-                                Great, thanks!
+                                Awesome!
                             </button>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Error Modal */}
-                {errorModal.open && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setErrorModal({ open: false, message: '' })} />
-                        <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center animate-scaleIn transform">
-                            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <XCircle className="w-10 h-10 text-red-500" />
+            {/* Error Modal */}
+            {errorModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setErrorModal({ open: false, message: '' })} />
+                    <div className="relative bg-gradient-to-br from-white to-red-50/30 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn transform">
+                        {/* Decorative background elements */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-400/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-400/10 rounded-full blur-3xl"></div>
+
+                        <div className="relative p-8 text-center">
+                            {/* Animated icon container */}
+                            <div className="relative inline-block mb-6">
+                                <div className="absolute inset-0 bg-red-200/50 rounded-full blur-xl animate-pulse"></div>
+                                <div className="relative w-24 h-24 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-red-500/30">
+                                    <XCircle className="w-12 h-12 text-white animate-shake" strokeWidth={2.5} />
+                                </div>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-2">Action Failed</h3>
-                            <p className="text-gray-500 mb-8">{errorModal.message}</p>
+
+                            <h3 className="text-2xl font-bold text-gray-800 mb-3">Oops!</h3>
+                            <p className="text-gray-600 mb-8 leading-relaxed">{errorModal.message}</p>
+
                             <button
                                 onClick={() => setErrorModal({ open: false, message: '' })}
-                                className="w-full py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-black transition-all"
+                                className="w-full py-3.5 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold rounded-xl hover:from-gray-800 hover:to-black transition-all shadow-lg shadow-gray-500/30 hover:shadow-xl hover:shadow-gray-600/40 transform hover:scale-[1.02] active:scale-[0.98]"
                             >
-                                Understand
+                                Got it
                             </button>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Detail Modal */}
-                {detailModal.open && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailModal({ open: false, data: null, loading: false })} />
-                        <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scaleIn transform">
-                            <div className="bg-indigo-600 px-6 py-4 flex items-center justify-between">
-                                <h3 className="text-white font-bold text-lg">Timesheet Details</h3>
-                                <button onClick={() => setDetailModal({ open: false, data: null, loading: false })} className="text-white/80 hover:text-white transition-colors">
-                                    <X size={20} />
+            {/* Detail Modal */}
+            {detailModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center py-6 px-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setDetailModal({ open: false, data: null, loading: false })} />
+                    <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden animate-scaleIn transform">
+                        {/* Gradient header with decorative elements */}
+                        <div className="relative bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 px-8 py-6 overflow-hidden flex-shrink-0">
+                            {/* Decorative circles */}
+                            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
+
+                            <div className="relative flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                        <Eye className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="text-white font-bold text-xl">Timesheet Details</h3>
+                                </div>
+                                <button
+                                    onClick={() => setDetailModal({ open: false, data: null, loading: false })}
+                                    className="w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center transition-all hover:rotate-90 duration-300"
+                                >
+                                    <X size={20} className="text-white" />
                                 </button>
                             </div>
+                        </div>
 
-                            <div className="p-6">
-                                {detailModal.loading ? (
-                                    <div className="py-12 flex flex-col items-center justify-center gap-4">
-                                        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-                                        <p className="text-gray-500 font-medium">Fetching details...</p>
-                                    </div>
-                                ) : detailModal.data ? (
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                                            <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xl">
+                        <div className="p-8 overflow-y-auto flex-1">
+                            {detailModal.loading ? (
+                                <div className="py-16 flex flex-col items-center justify-center gap-4">
+                                    <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+                                    <p className="text-gray-500 font-medium">Fetching details...</p>
+                                </div>
+                            ) : detailModal.data ? (
+                                <div className="space-y-6">
+                                    {/* Employee card with gradient */}
+                                    <div className="relative p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl overflow-hidden border border-indigo-100">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-200/20 rounded-full blur-2xl"></div>
+                                        <div className="relative flex items-center gap-5">
+                                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-indigo-500/30">
                                                 {(detailModal.data.employeeName || 'E').charAt(0).toUpperCase()}
                                             </div>
-                                            <div>
-                                                <p className="text-lg font-bold text-gray-800">{detailModal.data.employeeName}</p>
-                                                <p className="text-sm text-indigo-600 font-semibold">{formatField(detailModal.data.project)}</p>
+                                            <div className="flex-1">
+                                                <p className="text-xl font-bold text-gray-800 mb-1">{detailModal.data.employeeName}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="px-3 py-1 bg-white/60 backdrop-blur-sm rounded-full">
+                                                        <p className="text-sm text-indigo-700 font-bold">{formatField(detailModal.data.project)}</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Task</p>
-                                                <p className="text-gray-700 font-semibold">{formatField(detailModal.data.task)}</p>
-                                            </div>
-                                            <div className="space-y-1 text-right">
-                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status</p>
-                                                <span className={`px-3 py-1 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5 border ${getStatusStyle(detailModal.data.status || 'Pending')}`}>
-                                                    {getStatusIcon(detailModal.data.status || 'Pending')}
-                                                    {(detailModal.data.status || 'Pending').toUpperCase()}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Date</p>
-                                                <p className="text-gray-700 font-medium">{formatDate(detailModal.data.date || detailModal.data.createdAt)}</p>
-                                            </div>
-                                            <div className="space-y-1 text-right">
-                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Time Entry</p>
-                                                <p className="text-gray-700 font-bold">{formatField(detailModal.data.timeEntry || detailModal.data.time)}</p>
-                                            </div>
-                                            <div className="space-y-1 col-span-2">
-                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Billing Type</p>
-                                                <p className="text-gray-700 font-medium">{formatField(detailModal.data.billingType || detailModal.data.type)}</p>
-                                            </div>
+                                    {/* Info grid with enhanced styling */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                                Task
+                                            </p>
+                                            <p className="text-gray-800 font-bold text-sm">{formatField(detailModal.data.task)}</p>
                                         </div>
+                                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col items-end">
+                                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                                                Status
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                            </p>
+                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-2 border-2 ${getStatusStyle(detailModal.data.status || 'Pending')}`}>
+                                                {getStatusIcon(detailModal.data.status || 'Pending')}
+                                                {(detailModal.data.status || 'Pending').toUpperCase()}
+                                            </span>
+                                        </div>
+                                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                                Date
+                                            </p>
+                                            <p className="text-gray-800 font-bold text-sm">{formatDate(detailModal.data.date || detailModal.data.createdAt)}</p>
+                                        </div>
+                                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col items-end">
+                                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                                                Time Entry
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                            </p>
+                                            <p className="text-indigo-700 font-black text-lg">{formatField(detailModal.data.hours || detailModal.data.time)}</p>
+                                        </div>
+                                        <div className="col-span-2 p-4 bg-gradient-to-br from-gray-50 to-indigo-50/30 rounded-xl border border-gray-100">
+                                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                                Billing Type
+                                            </p>
+                                            <p className="text-gray-800 font-bold">{formatField(detailModal.data.billingType || detailModal.data.type)}</p>
+                                        </div>
+                                    </div>
 
-                                        {detailModal.data.description && (
-                                            <div className="space-y-1 pb-4 border-b border-gray-100">
-                                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Description</p>
-                                                <p className="text-gray-700 text-sm leading-relaxed italic">
-                                                    "{Array.isArray(detailModal.data.description) ? detailModal.data.description.join(', ') : detailModal.data.description}"
+                                    {/* Description section */}
+                                    {detailModal.data.description && (
+                                        <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50/30 rounded-xl border border-amber-100">
+                                            <p className="text-xs text-amber-700 font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                                                Description
+                                            </p>
+                                            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-lg">
+                                                <p className="text-gray-700 text-sm leading-relaxed">
+                                                    {Array.isArray(detailModal.data.description) ? detailModal.data.description.join(', ') : detailModal.data.description}
                                                 </p>
                                             </div>
-                                        )}
+                                        </div>
+                                    )}
 
-                                        <div className="flex justify-between items-center text-[10px] text-gray-400 font-medium pt-2">
-                                            <p>ID: {detailModal.data._id}</p>
+                                    {/* Footer info */}
+                                    <div className="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-xl text-xs text-gray-500 font-medium">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1 h-1 rounded-full bg-gray-400"></div>
+                                            <p>ID: <span className="font-mono text-gray-600">{detailModal.data._id}</span></p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Clock size={12} className="text-gray-400" />
                                             <p>Submitted {formatDate(detailModal.data.createdAt || detailModal.data.date)}</p>
                                         </div>
+                                    </div>
 
-                                        <div className="pt-4 flex gap-3">
-                                            {(detailModal.data.status || 'Pending') === 'Pending' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => {
-                                                            handleUpdateStatus(detailModal.data._id, 'Approved');
-                                                            setDetailModal({ open: false, data: null, loading: false });
-                                                        }}
-                                                        className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
-                                                    >
-                                                        <Check size={18} /> Approve
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            handleUpdateStatus(detailModal.data._id, 'Rejected');
-                                                            setDetailModal({ open: false, data: null, loading: false });
-                                                        }}
-                                                        className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2"
-                                                    >
-                                                        <X size={18} /> Reject
-                                                    </button>
-                                                </>
-                                            )}
-                                            <button
-                                                onClick={() => setDetailModal({ open: false, data: null, loading: false })}
-                                                className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all"
-                                            >
-                                                Close
-                                            </button>
-                                        </div>
+                                    {/* Action buttons with enhanced styling */}
+                                    <div className="pt-6 flex gap-3">
+                                        {(detailModal.data.status || 'Pending') === 'Pending' && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        handleUpdateStatus(detailModal.data._id, 'Approved');
+                                                        setDetailModal({ open: false, data: null, loading: false });
+                                                    }}
+                                                    className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]"
+                                                >
+                                                    <Check size={20} strokeWidth={3} /> Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        handleUpdateStatus(detailModal.data._id, 'Rejected');
+                                                        setDetailModal({ open: false, data: null, loading: false });
+                                                    }}
+                                                    className="flex-1 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]"
+                                                >
+                                                    <X size={20} strokeWidth={3} /> Reject
+                                                </button>
+                                            </>
+                                        )}
+                                        <button
+                                            onClick={() => setDetailModal({ open: false, data: null, loading: false })}
+                                            className="flex-1 py-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-all border-2 border-gray-200 hover:border-gray-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                                        >
+                                            Close
+                                        </button>
                                     </div>
-                                ) : (
-                                    <div className="py-12 text-center text-gray-400">
-                                        Could not load details.
-                                    </div>
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                <div className="py-12 text-center text-gray-400">
+                                    Could not load details.
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </>
     );
 };

@@ -27,7 +27,7 @@ const SidebarItem = ({ icon: Icon, label, active = false, hasSubmenu = false, co
             {!collapsed && <span className="text-sm font-medium">{label}</span>}
         </div>
         {!collapsed && hasSubmenu && (
-            <>    
+            <>
                 {/* submenu chevron (approve link moved into submenu list) */}
                 <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </>
@@ -136,19 +136,22 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                         />
                         {(openMenus.timesheet || isTimesheetActive) && !isCollapsed && (
                             <div className="bg-gray-900/50">
-                                <SubMenuItem
-                                    label="Add Timesheet"
-                                    to="/timesheet/add"
-                                    active={location.pathname === '/timesheet/add'}
-                                    collapsed={isCollapsed}
-                                />
-                                <SubMenuItem
-                                    label="Timesheet Details"
-                                    to="/timesheet/details"
-                                    active={location.pathname === '/timesheet/details'}
-                                    collapsed={isCollapsed}
-                                />
-                                {isAdmin && (
+                                {!isAdmin ? (
+                                    <>
+                                        <SubMenuItem
+                                            label="Add Timesheet"
+                                            to="/timesheet/add"
+                                            active={location.pathname === '/timesheet/add'}
+                                            collapsed={isCollapsed}
+                                        />
+                                        <SubMenuItem
+                                            label="Timesheet Details"
+                                            to="/timesheet/details"
+                                            active={location.pathname === '/timesheet/details'}
+                                            collapsed={isCollapsed}
+                                        />
+                                    </>
+                                ) : (
                                     <SubMenuItem
                                         label="Approve Timesheets"
                                         to="/admin/approve-timesheets"

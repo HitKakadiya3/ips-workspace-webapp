@@ -54,6 +54,28 @@ export const timesheetApi = createApi({
             }),
             invalidatesTags: ['Timesheets'],
         }),
+        getDailyTimesheet: builder.query({
+            query: ({ userId, date }) => {
+                const params = date ? { date } : {};
+                return {
+                    url: `/api/timesheets/user/${userId}/daily`,
+                    params
+                };
+            },
+            providesTags: ['Timesheets'],
+            transformResponse: (response) => {
+                if (!response) return {};
+                if (response.data !== undefined) return response.data;
+                return response;
+            },
+        }),
+        deleteTimesheet: builder.mutation({
+            query: (id) => ({
+                url: `/api/timesheets/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Timesheets'],
+        }),
     }),
 });
 
@@ -61,4 +83,6 @@ export const {
     useGetTimesheetsQuery,
     useAddTimesheetMutation,
     useUpdateTimesheetStatusMutation,
+    useGetDailyTimesheetQuery,
+    useDeleteTimesheetMutation,
 } = timesheetApi;

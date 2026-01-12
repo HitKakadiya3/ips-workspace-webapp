@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, Code, Highlighter } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListOrdered, Code, Highlighter, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TimePicker from '../components/ui/TimePicker';
 import { getProjects } from '../services/projectService';
-import { useAddTimesheetMutation } from '../store/api/timesheetApi';
+import { useAddTimesheetMutation, useGetDailyTimesheetQuery } from '../store/api/timesheetApi';
 
 const AddTimesheet = () => {
     const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user.id || user._id;
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
     const [formData, setFormData] = useState({
         project: '',
         task: '',
-        timeEntry: '00:00',
+        hours: '00:00',
         billingType: 'Billable',
         description: ''
     });
 
     const [addTimesheet, { isLoading: isSubmitting }] = useAddTimesheetMutation();
+
+    // Get today's date in YYYY-MM-DD format
+    const todayDate = new Date().toISOString().split('T')[0];
+    const { data: dailyTimesheets = [] } = useGetDailyTimesheetQuery({ userId, date: todayDate }, { skip: !userId });
 
     const [projectList, setProjectList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,52 +41,63 @@ const AddTimesheet = () => {
 
     // Convert HH:MM format to decimal hours
     const timeToDecimal = (timeString) => {
-        const [hours, minutes] = timeString.split(':').map(Number);
+        if (!timeString) return 0;
+        if (typeof timeString === 'number') return timeString;
+
+        const str = String(timeString);
+        if (!str.includes(':')) {
+            const val = parseFloat(str);
+            return isNaN(val) ? 0 : val;
+        }
+
+        const [hours, minutes] = str.split(':').map(Number);
         return hours + (minutes / 60);
     };
 
+    // Calculate filled hours when dailyTimesheets data changes
+    useEffect(() => {
+        if (Array.isArray(dailyTimesheets)) {
+            const totalFilled = dailyTimesheets.reduce((sum, entry) => {
+                const entryTime = entry.hours || entry.time || "00:00";
+                return sum + timeToDecimal(entryTime);
+            }, 0);
+
+            setFilledHoursDecimal(totalFilled);
+        }
+    }, [dailyTimesheets]);
+
     // Calculate available hours
-    const availableHoursDecimal = TOTAL_HOURS_PER_DAY - filledHoursDecimal;
+    const availableHoursDecimal = Math.max(0, TOTAL_HOURS_PER_DAY - filledHoursDecimal);
 
     // Formatted display values
     const totalHours = formatHoursToTime(TOTAL_HOURS_PER_DAY);
     const filledHours = formatHoursToTime(filledHoursDecimal);
     const availableHours = formatHoursToTime(availableHoursDecimal);
 
-    // Fetch data on component mount
+    // Fetch initial data (projects)
     useEffect(() => {
-        const loadInitialData = async () => {
+        const loadProjects = async () => {
             setIsLoading(true);
             try {
-                // 1. Fetch User Info
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-                // 2. Fetch Projects
+                // Fetch Projects
                 const response = await getProjects({}, {
                     role: user.role,
-                    userId: user.id || user._id
+                    userId
                 });
                 // Handle direct array or { data: [...] } structure
                 const projectsData = response?.data || response;
                 setProjectList(Array.isArray(projectsData) ? projectsData : []);
-
-                // 3. Fetch Filled Hours for today
-                // TODO: Replace with actual API call
-                const todayEntries = []; // Mock
-                const totalFilled = todayEntries.reduce((sum, entry) => {
-                    return sum + timeToDecimal(entry.timeEntry);
-                }, 0);
-                setFilledHoursDecimal(totalFilled);
-
             } catch (error) {
-                console.error('Error loading initial data:', error);
+                console.error('Error loading projects:', error);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        loadInitialData();
-    }, []);
+        if (userId) {
+            loadProjects();
+        }
+    }, [userId]);
 
     const tasks = [
         'Development',
@@ -100,7 +119,7 @@ const AddTimesheet = () => {
         e.preventDefault();
 
         // Validate that time entry is 2 hours or less
-        const entryHours = timeToDecimal(formData.timeEntry);
+        const entryHours = timeToDecimal(formData.hours);
         if (entryHours > 2) {
             alert('Time entry cannot exceed 2 hours per entry. Please enter 2 hours or less.');
             return;
@@ -108,7 +127,7 @@ const AddTimesheet = () => {
 
         // Validate that time entry doesn't exceed available hours
         if (entryHours > availableHoursDecimal) {
-            alert(`Time entry (${formData.timeEntry}) exceeds available hours (${availableHours})`);
+            alert(`Time entry (${formData.hours}) exceeds available hours (${availableHours})`);
             return;
         }
 
@@ -128,14 +147,13 @@ const AddTimesheet = () => {
                     user: userId,
                     project: formData.project,
                     task: formData.task,
-                    timeEntry: formData.timeEntry,
+                    hours: formData.hours,
                     billingType: formData.billingType,
                     description: formData.description
                 };
 
                 await addTimesheet(payload).unwrap();
-                alert('Timesheet added successfully!');
-                navigate('/timesheet/details');
+                setShowSuccessModal(true);
             } catch (error) {
                 console.error('Error saving timesheet:', error);
                 alert(error?.data?.message || 'Failed to save timesheet. Please try again.');
@@ -176,7 +194,18 @@ const AddTimesheet = () => {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 relative">
+                {availableHoursDecimal <= 0 && (
+                    <div className="absolute inset-0 z-10 bg-gray-50/50 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                        <div className="bg-white p-6 rounded-xl shadow-xl border border-red-100 max-w-sm text-center">
+                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span className="text-2xl">⏳</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-800 mb-2">Daily Limit Reached</h3>
+                            <p className="text-gray-600 text-sm">You have completed your 8:30 hours for today. Please come back tomorrow!</p>
+                        </div>
+                    </div>
+                )}
                 {/* Form Fields Row */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     {/* Project */}
@@ -225,9 +254,10 @@ const AddTimesheet = () => {
                             Time Entry <span className="text-red-500">*</span>
                         </label>
                         <TimePicker
-                            name="timeEntry"
-                            value={formData.timeEntry}
+                            name="hours"
+                            value={formData.hours}
                             onChange={handleInputChange}
+                            maxHours={Math.min(2, availableHoursDecimal)}
                         />
                     </div>
 
@@ -311,6 +341,42 @@ const AddTimesheet = () => {
                     </button>
                 </div>
             </form>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccessModal(false)}></div>
+                    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all animate-scaleIn">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                <CheckCircle2 className="w-8 h-8 text-green-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Success!</h3>
+                            <p className="text-gray-500 mb-6">
+                                Timesheet submitted successfully.
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={() => {
+                                        setShowSuccessModal(false);
+                                        setFormData(prev => ({ ...prev, description: '', hours: '00:00' })); // Reset some fields?
+                                        // Maybe better to reset form fully or partial
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                >
+                                    Add Another
+                                </button>
+                                <button
+                                    onClick={() => navigate('/timesheet/details')}
+                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors"
+                                >
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
