@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -17,17 +17,20 @@ import {
     CheckCircle2
 } from 'lucide-react';
 
-const SidebarItem = ({ icon: Icon, label, to = "#", active = false, hasSubmenu = false, collapsed = false, isOpen = false, onClick }) => (
+const SidebarItem = ({ icon: Icon, label, active = false, hasSubmenu = false, collapsed = false, isOpen = false, onClick }) => (
     <div
         onClick={onClick}
         className={`flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-4'} py-3 cursor-pointer transition-colors ${active ? 'bg-indigo-600 text-white border-l-4 border-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
     >
         <div className={`flex items-center gap-3 ${active ? '-ml-1' : ''}`}>
-            <Icon size={20} />
+            {Icon && <Icon size={20} />}
             {!collapsed && <span className="text-sm font-medium">{label}</span>}
         </div>
         {!collapsed && hasSubmenu && (
-            <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <>    
+                {/* submenu chevron (approve link moved into submenu list) */}
+                <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </>
         )}
     </div>
 );
@@ -129,6 +132,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                             isOpen={openMenus.timesheet}
                             onClick={() => toggleMenu('timesheet')}
                             active={isTimesheetActive}
+                            isAdmin={isAdmin}
                         />
                         {(openMenus.timesheet || isTimesheetActive) && !isCollapsed && (
                             <div className="bg-gray-900/50">
@@ -144,6 +148,14 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                                     active={location.pathname === '/timesheet/details'}
                                     collapsed={isCollapsed}
                                 />
+                                {isAdmin && (
+                                    <SubMenuItem
+                                        label="Approve Timesheets"
+                                        to="/admin/approve-timesheets"
+                                        active={location.pathname === '/admin/approve-timesheets'}
+                                        collapsed={isCollapsed}
+                                    />
+                                )}
                             </div>
                         )}
 

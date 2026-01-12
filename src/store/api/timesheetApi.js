@@ -17,7 +17,15 @@ export const timesheetApi = createApi({
         getTimesheets: builder.query({
             query: (params = {}) => {
                 const { userId, status = 'All' } = params;
-                const url = userId ? `/api/timesheets/user/${userId}` : '/api/timesheets';
+                let url;
+                if (userId === 'admin') {
+                    // Admin endpoint returns pending/approved grouped data when requested
+                    url = '/api/timesheets/admin';
+                } else if (userId) {
+                    url = `/api/timesheets/user/${userId}`;
+                } else {
+                    url = '/api/timesheets';
+                }
                 const qp = status && status !== 'All' ? { status } : undefined;
                 return { url, params: qp };
             },
@@ -38,10 +46,19 @@ export const timesheetApi = createApi({
             }),
             invalidatesTags: ['Timesheets'],
         }),
+        updateTimesheetStatus: builder.mutation({
+            query: ({ timesheetId, status }) => ({
+                url: `/api/timesheets/${timesheetId}/status`,
+                method: 'PATCH',
+                body: { status },
+            }),
+            invalidatesTags: ['Timesheets'],
+        }),
     }),
 });
 
 export const {
     useGetTimesheetsQuery,
     useAddTimesheetMutation,
+    useUpdateTimesheetStatusMutation,
 } = timesheetApi;
