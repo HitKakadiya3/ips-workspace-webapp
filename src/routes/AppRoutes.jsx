@@ -17,6 +17,7 @@ import TimesheetDetails from '../pages/TimesheetDetails';
 import Unauthorized from '../pages/Unauthorized';
 import AdminApproveTimesheet from '../pages/AdminApproveTimesheet';
 import WorkFromHome from '../pages/WorkFromHome';
+import AdminWorkFromHome from '../pages/AdminWorkFromHome';
 
 
 
@@ -66,6 +67,7 @@ const AppRoutes = () => {
                 <Route path="/timesheet/add" element={<AddTimesheet />} />
                 <Route path="/timesheet/details" element={<TimesheetDetails />} />
                 <Route path="/admin/approve-timesheets" element={<AdminApproveTimesheet />} />
+                <Route path="/admin/wfh-approval" element={<RoleRoute allowedRoles={['Admin']}><AdminWorkFromHome /></RoleRoute>} />
                 <Route path="/work-from-home" element={<WorkFromHome />} />
             </Route>
             <Route path="/unauthorized" element={<Unauthorized />} />

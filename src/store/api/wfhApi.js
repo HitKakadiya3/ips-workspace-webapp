@@ -32,10 +32,34 @@ export const wfhApi = createApi({
             }),
             invalidatesTags: ['WorkFromHome'],
         }),
+        getAllWfhRequests: builder.query({
+            query: (params) => ({
+                url: '/api/wfh',
+                params,
+            }),
+            providesTags: ['WorkFromHome'],
+            transformResponse: (response) => {
+                if (!response) return { wfhRequests: [], pagination: {} };
+                if (Array.isArray(response)) return { wfhRequests: response, pagination: {} };
+                if (response.data && Array.isArray(response.data)) return { wfhRequests: response.data, pagination: response.pagination || {} };
+                if (response.wfhRequests) return response;
+                return { wfhRequests: [], pagination: {} };
+            },
+        }),
+        updateWfhStatus: builder.mutation({
+            query: ({ id, status }) => ({
+                url: `/api/wfh/${id}/status`,
+                method: 'PATCH',
+                body: { status },
+            }),
+            invalidatesTags: ['WorkFromHome'],
+        }),
     }),
 });
 
 export const {
     useGetWfhRequestsQuery,
     useApplyWorkFromHomeMutation,
+    useGetAllWfhRequestsQuery,
+    useUpdateWfhStatusMutation,
 } = wfhApi;
