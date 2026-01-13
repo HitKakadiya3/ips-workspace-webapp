@@ -2,30 +2,50 @@ import React, { useState } from 'react';
 import { Plus, Eye, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import WorkFromHomeModal from '../components/modals/WorkFromHomeModal';
 
+import { useGetWfhRequestsQuery } from '../store/api/wfhApi';
+
 const WorkFromHome = () => {
     const [activeTab, setActiveTab] = useState('Expired');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Mock Data based on image
-    const requests = [
-        { id: 1, name: 'Hitendra Kakadiya', type: 'Multiple Days', startDate: '01-12-2025', endDate: '31-12-2025', days: 23, appliedDate: '01-12-2025', status: 'Expired' },
-        { id: 2, name: 'Hitendra Kakadiya', type: 'Multiple Days', startDate: '27-10-2025', endDate: '30-11-2025', days: 26, appliedDate: '27-10-2025', status: 'Expired' },
-        { id: 3, name: 'Hitendra Kakadiya', type: 'Multiple Days', startDate: '06-09-2025', endDate: '30-09-2025', days: 17, appliedDate: '05-09-2025', status: 'Expired' },
-        { id: 4, name: 'Hitendra Kakadiya', type: 'Multiple Days', startDate: '01-09-2025', endDate: '30-09-2025', days: 22, appliedDate: '01-09-2025', status: 'Expired' },
-        { id: 5, name: 'Hitendra Kakadiya', type: 'Multiple Days', startDate: '01-08-2025', endDate: '31-08-2025', days: 21, appliedDate: '30-07-2025', status: 'Expired' },
-        { id: 6, name: 'Hitendra Kakadiya', type: 'Multiple Days', startDate: '09-07-2025', endDate: '31-07-2025', days: 24, appliedDate: '09-07-2025', status: 'Expired' },
-    ];
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const { data: allRequests = [], isLoading, error } = useGetWfhRequestsQuery(user._id || user.id, {
+        skip: !user._id && !user.id
+    });
+
+    // Filter requests based on active tab
+    const requests = allRequests.filter(req => {
+        if (activeTab === 'Pending Approval') return req.status === 'Pending';
+        if (activeTab === 'Approved') return req.status === 'Approved';
+        if (activeTab === 'Rejected') return req.status === 'Rejected';
+        if (activeTab === 'Expired') return req.status === 'Expired';
+        return true;
+    });
 
     const tabs = ['Pending Approval', 'Approved', 'Rejected', 'Expired'];
 
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\//g, '-');
+    };
+
+    const calculateDays = (start, end) => {
+        if (!start || !end) return '-';
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return diffDays;
+    };
+
     return (
         <div className="p-6 max-w-[1400px] mx-auto">
-
-
-            {/* Main Content Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-h-[600px] p-6">
-
-                {/* Actions Row */}
                 <div className="flex justify-between items-center mb-8">
                     <div className="flex space-x-2">
                         {tabs.map((tab) => (
@@ -53,38 +73,46 @@ const WorkFromHome = () => {
 
                 {/* Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4 pl-4">Name</th>
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Type</th>
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Start Date</th>
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">End Date</th>
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Days</th>
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Applied Date</th>
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Status</th>
-                                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {requests.map((request) => (
-                                <tr key={request.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="py-4 pl-4 text-sm text-indigo-600 font-medium">{request.name}</td>
-                                    <td className="py-4 text-sm text-gray-600">{request.type}</td>
-                                    <td className="py-4 text-sm text-gray-600">{request.startDate}</td>
-                                    <td className="py-4 text-sm text-gray-600">{request.endDate}</td>
-                                    <td className="py-4 text-sm text-gray-600">{request.days}</td>
-                                    <td className="py-4 text-sm text-gray-600">{request.appliedDate}</td>
-                                    <td className="py-4 text-sm text-gray-500">{request.status}</td>
-                                    <td className="py-4">
-                                        <button className="text-indigo-600 hover:text-indigo-800 transition-colors">
-                                            <Eye size={18} />
-                                        </button>
-                                    </td>
+                    {isLoading ? (
+                        <div className="text-center py-8 text-gray-500">Loading requests...</div>
+                    ) : error ? (
+                        <div className="text-center py-8 text-red-500">Error loading requests</div>
+                    ) : requests.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">No requests found</div>
+                    ) : (
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-gray-100">
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4 pl-4">Name</th>
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Type</th>
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Start Date</th>
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">End Date</th>
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Days</th>
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Applied Date</th>
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Status</th>
+                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider py-4">Action</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {requests.map((request) => (
+                                    <tr key={request._id || request.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="py-4 pl-4 text-sm text-indigo-600 font-medium">{request.name || user.name || 'Unknown'}</td>
+                                        <td className="py-4 text-sm text-gray-600">{request.type}</td>
+                                        <td className="py-4 text-sm text-gray-600">{formatDate(request.startDate)}</td>
+                                        <td className="py-4 text-sm text-gray-600">{formatDate(request.endDate)}</td>
+                                        <td className="py-4 text-sm text-gray-600">{calculateDays(request.startDate, request.endDate)}</td>
+                                        <td className="py-4 text-sm text-gray-600">{formatDate(request.createdAt || request.appliedDate)}</td>
+                                        <td className="py-4 text-sm text-gray-500 capitalize">{request.status}</td>
+                                        <td className="py-4">
+                                            <button className="text-indigo-600 hover:text-indigo-800 transition-colors">
+                                                <Eye size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
                 {/* Pagination */}

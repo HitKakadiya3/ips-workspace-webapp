@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useApplyWorkFromHomeMutation } from '../../store/api/wfhApi';
 import { X, Calendar } from 'lucide-react';
 
 const WorkFromHomeModal = ({ isOpen, onClose }) => {
@@ -7,13 +8,33 @@ const WorkFromHomeModal = ({ isOpen, onClose }) => {
     const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
 
+    const [applyWorkFromHome, { isLoading }] = useApplyWorkFromHomeMutation();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Handle form submission logic here
-        console.log({ type, startDate, endDate, reason });
-        onClose();
+        try {
+            await applyWorkFromHome({
+                userId: user._id || user.id,
+                type,
+                startDate,
+                endDate: type === 'Multiple Days' ? endDate : undefined,
+                reason
+            }).unwrap();
+
+            // Reset form
+            setType('Single Day');
+            setStartDate('');
+            setEndDate('');
+            setReason('');
+
+            onClose();
+        } catch (error) {
+            console.error('Failed to apply for WFH:', error);
+            // Ideally handle error state here
+        }
     };
 
     return (
@@ -115,9 +136,10 @@ const WorkFromHomeModal = ({ isOpen, onClose }) => {
                     <div className="mt-8">
                         <button
                             type="submit"
-                            className="bg-indigo-600 text-white px-8 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 text-sm font-medium"
+                            disabled={isLoading}
+                            className={`bg-indigo-600 text-white px-8 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 text-sm font-medium ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            Save
+                            {isLoading ? 'Saving...' : 'Save'}
                         </button>
                     </div>
                 </form>

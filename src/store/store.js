@@ -5,6 +5,7 @@ import profileReducer from './slices/profileSlice';
 import { leaveApi } from './api/leaveApi';
 import { documentApi } from './api/documentApi';
 import { timesheetApi } from './api/timesheetApi';
+import { wfhApi } from './api/wfhApi';
 
 export const store = configureStore({
     reducer: {
@@ -14,9 +15,10 @@ export const store = configureStore({
         [leaveApi.reducerPath]: leaveApi.reducer,
         [documentApi.reducerPath]: documentApi.reducer,
         [timesheetApi.reducerPath]: timesheetApi.reducer,
+        [wfhApi.reducerPath]: wfhApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(leaveApi.middleware, documentApi.middleware, timesheetApi.middleware),
+        getDefaultMiddleware().concat(leaveApi.middleware, documentApi.middleware, timesheetApi.middleware, wfhApi.middleware),
 });
 
 export default store;
