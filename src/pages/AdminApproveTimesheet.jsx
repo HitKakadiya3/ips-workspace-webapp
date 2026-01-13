@@ -9,15 +9,15 @@ const AdminApproveTimesheet = () => {
 
     const { data: timesheetData = {}, isLoading, isError, error, refetch } = useGetTimesheetsQuery({
         userId: 'admin',
-        status: filterStatus,
+        status: 'All',
         page,
         limit
     });
 
     // Normalize response: API may return an array or an object grouping by status
-    const pendingList = Array.isArray(timesheetData.pending) ? timesheetData.pending : Array.isArray(timesheetData) && filterStatus === 'Pending' ? timesheetData : [];
-    const approvedList = Array.isArray(timesheetData.approved) ? timesheetData.approved : Array.isArray(timesheetData) && filterStatus === 'Approved' ? timesheetData : [];
-    const rejectedList = Array.isArray(timesheetData.rejected) ? timesheetData.rejected : Array.isArray(timesheetData) && filterStatus === 'Rejected' ? timesheetData : [];
+    const pendingList = Array.isArray(timesheetData.pending) ? timesheetData.pending : Array.isArray(timesheetData) ? timesheetData.filter(t => t.status === 'Pending') : [];
+    const approvedList = Array.isArray(timesheetData.approved) ? timesheetData.approved : Array.isArray(timesheetData) ? timesheetData.filter(t => t.status === 'Approved') : [];
+    const rejectedList = Array.isArray(timesheetData.rejected) ? timesheetData.rejected : Array.isArray(timesheetData) ? timesheetData.filter(t => t.status === 'Rejected') : [];
     const allList = Array.isArray(timesheetData) ? timesheetData : [...pendingList, ...approvedList, ...rejectedList];
 
     const displayedList = filterStatus === 'Pending' ? pendingList : filterStatus === 'Approved' ? approvedList : filterStatus === 'Rejected' ? rejectedList : allList;
@@ -294,7 +294,7 @@ const AdminApproveTimesheet = () => {
             {successModal.open && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setSuccessModal({ open: false, message: '' })} />
-                    <div className="relative bg-gradient-to-br from-white to-emerald-50/30 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn transform">
+                    <div className="relative bg-linear-to-br from-white to-emerald-50/30 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn transform">
                         {/* Decorative background elements */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-400/10 rounded-full blur-3xl"></div>
@@ -303,7 +303,7 @@ const AdminApproveTimesheet = () => {
                             {/* Animated icon container */}
                             <div className="relative inline-block mb-6">
                                 <div className="absolute inset-0 bg-emerald-200/50 rounded-full blur-xl animate-pulse"></div>
-                                <div className="relative w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30 animate-bounce-slow">
+                                <div className="relative w-24 h-24 bg-linear-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30 animate-bounce-slow">
                                     <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={2.5} />
                                 </div>
                             </div>
@@ -313,7 +313,7 @@ const AdminApproveTimesheet = () => {
 
                             <button
                                 onClick={() => setSuccessModal({ open: false, message: '' })}
-                                className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transform hover:scale-[1.02] active:scale-[0.98]"
+                                className="w-full py-3.5 bg-linear-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transform hover:scale-[1.02] active:scale-[0.98]"
                             >
                                 Awesome!
                             </button>
@@ -326,7 +326,7 @@ const AdminApproveTimesheet = () => {
             {errorModal.open && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setErrorModal({ open: false, message: '' })} />
-                    <div className="relative bg-gradient-to-br from-white to-red-50/30 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn transform">
+                    <div className="relative bg-linear-to-br from-white to-red-50/30 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn transform">
                         {/* Decorative background elements */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-400/10 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-400/10 rounded-full blur-3xl"></div>
@@ -335,7 +335,7 @@ const AdminApproveTimesheet = () => {
                             {/* Animated icon container */}
                             <div className="relative inline-block mb-6">
                                 <div className="absolute inset-0 bg-red-200/50 rounded-full blur-xl animate-pulse"></div>
-                                <div className="relative w-24 h-24 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-red-500/30">
+                                <div className="relative w-24 h-24 bg-linear-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-red-500/30">
                                     <XCircle className="w-12 h-12 text-white animate-shake" strokeWidth={2.5} />
                                 </div>
                             </div>
@@ -345,7 +345,7 @@ const AdminApproveTimesheet = () => {
 
                             <button
                                 onClick={() => setErrorModal({ open: false, message: '' })}
-                                className="w-full py-3.5 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold rounded-xl hover:from-gray-800 hover:to-black transition-all shadow-lg shadow-gray-500/30 hover:shadow-xl hover:shadow-gray-600/40 transform hover:scale-[1.02] active:scale-[0.98]"
+                                className="w-full py-3.5 bg-linear-to-r from-gray-700 to-gray-900 text-white font-bold rounded-xl hover:from-gray-800 hover:to-black transition-all shadow-lg shadow-gray-500/30 hover:shadow-xl hover:shadow-gray-600/40 transform hover:scale-[1.02] active:scale-[0.98]"
                             >
                                 Got it
                             </button>
@@ -360,7 +360,7 @@ const AdminApproveTimesheet = () => {
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setDetailModal({ open: false, data: null, loading: false })} />
                     <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden animate-scaleIn transform">
                         {/* Gradient header with decorative elements */}
-                        <div className="relative bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 px-8 py-6 overflow-hidden flex-shrink-0">
+                        <div className="relative bg-linear-to-r from-indigo-600 via-indigo-700 to-purple-600 px-8 py-6 overflow-hidden shrink-0">
                             {/* Decorative circles */}
                             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
@@ -390,10 +390,10 @@ const AdminApproveTimesheet = () => {
                             ) : detailModal.data ? (
                                 <div className="space-y-6">
                                     {/* Employee card with gradient */}
-                                    <div className="relative p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl overflow-hidden border border-indigo-100">
+                                    <div className="relative p-6 bg-linear-to-br from-indigo-50 to-purple-50 rounded-2xl overflow-hidden border border-indigo-100">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-200/20 rounded-full blur-2xl"></div>
                                         <div className="relative flex items-center gap-5">
-                                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-indigo-500/30">
+                                            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-indigo-500/30">
                                                 {(detailModal.data.employeeName || 'E').charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex-1">
@@ -440,7 +440,7 @@ const AdminApproveTimesheet = () => {
                                             </p>
                                             <p className="text-indigo-700 font-black text-lg">{formatField(detailModal.data.hours || detailModal.data.time)}</p>
                                         </div>
-                                        <div className="col-span-2 p-4 bg-gradient-to-br from-gray-50 to-indigo-50/30 rounded-xl border border-gray-100">
+                                        <div className="col-span-2 p-4 bg-linear-to-br from-gray-50 to-indigo-50/30 rounded-xl border border-gray-100">
                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
                                                 Billing Type
@@ -451,7 +451,7 @@ const AdminApproveTimesheet = () => {
 
                                     {/* Description section */}
                                     {detailModal.data.description && (
-                                        <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50/30 rounded-xl border border-amber-100">
+                                        <div className="p-5 bg-linear-to-br from-amber-50 to-orange-50/30 rounded-xl border border-amber-100">
                                             <p className="text-xs text-amber-700 font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
                                                 Description
@@ -485,7 +485,7 @@ const AdminApproveTimesheet = () => {
                                                         handleUpdateStatus(detailModal.data._id, 'Approved');
                                                         setDetailModal({ open: false, data: null, loading: false });
                                                     }}
-                                                    className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]"
+                                                    className="flex-1 py-4 bg-linear-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]"
                                                 >
                                                     <Check size={20} strokeWidth={3} /> Approve
                                                 </button>
@@ -494,7 +494,7 @@ const AdminApproveTimesheet = () => {
                                                         handleUpdateStatus(detailModal.data._id, 'Rejected');
                                                         setDetailModal({ open: false, data: null, loading: false });
                                                     }}
-                                                    className="flex-1 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]"
+                                                    className="flex-1 py-4 bg-linear-to-r from-red-500 to-red-600 text-white font-bold rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]"
                                                 >
                                                     <X size={20} strokeWidth={3} /> Reject
                                                 </button>

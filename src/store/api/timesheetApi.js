@@ -16,7 +16,7 @@ export const timesheetApi = createApi({
     endpoints: (builder) => ({
         getTimesheets: builder.query({
             query: (params = {}) => {
-                const { userId, status = 'All' } = params;
+                const { userId, status = 'All', ...rest } = params;
                 let url;
                 if (userId === 'admin') {
                     // Admin endpoint returns pending/approved grouped data when requested
@@ -26,7 +26,8 @@ export const timesheetApi = createApi({
                 } else {
                     url = '/api/timesheets';
                 }
-                const qp = status && status !== 'All' ? { status } : undefined;
+                const qp = { ...rest };
+                if (status && status !== 'All') qp.status = status;
                 return { url, params: qp };
             },
             providesTags: ['Timesheets'],

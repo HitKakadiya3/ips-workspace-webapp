@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { Plus, Eye, Calendar, ChevronDown, Loader2, AlertCircle, Clock, CheckCircle2, XCircle, X, Trash2 } from 'lucide-react';
 import { useGetTimesheetsQuery, useDeleteTimesheetMutation } from '../store/api/timesheetApi';
@@ -9,7 +9,6 @@ const TimesheetDetails = () => {
     const [showDescription, setShowDescription] = useState(false);
     const [detailModal, setDetailModal] = useState({ open: false, data: null, loading: false });
 
-    // ... (params logic)
     const params = useParams();
     const routeUserId = params.userId || params.id;
 
@@ -17,33 +16,68 @@ const TimesheetDetails = () => {
     const localUserId = user.id || user._id;
     const queryUserId = routeUserId || localUserId;
 
+    const [deleteTimesheet] = useDeleteTimesheetMutation();
+
+    const [projects, setProjects] = useState([]);
+    const [filters, setFilters] = useState({
+        billingType: '',
+        project: '',
+        task: '',
+        dateRange: 'This Month'
+    });
+
+    const apiParams = {
+        userId: queryUserId,
+        status: 'All'
+    };
+
+    if (filters.billingType) apiParams.billingType = filters.billingType;
+    if (filters.project) apiParams.project = filters.project;
+    if (filters.task) apiParams.task = filters.task;
+
+    if (filters.dateRange === 'This Month') {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        apiParams.startDate = start.toISOString().split('T')[0];
+        apiParams.endDate = end.toISOString().split('T')[0];
+    }
+
     const {
         data: timesheetData = {},
         isLoading,
         isError,
         error,
         refetch
-    } = useGetTimesheetsQuery(
-        { userId: queryUserId, status: 'All' },
-        { skip: !queryUserId }
-    );
+    } = useGetTimesheetsQuery(apiParams, { skip: !queryUserId });
 
-    const [deleteTimesheet] = useDeleteTimesheetMutation();
-
-    // ... (lists logic)
-    // timesheetData may be either:
-    // - an object shaped { pending: [...], approved: [...], rejected: [...] }
-    // - or an array (older API shape)
     const pendingList = Array.isArray(timesheetData.pending) ? timesheetData.pending : Array.isArray(timesheetData) && status === 'Pending' ? timesheetData : [];
     const approvedList = Array.isArray(timesheetData.approved) ? timesheetData.approved : Array.isArray(timesheetData) && status === 'Approved' ? timesheetData : [];
     const rejectedList = Array.isArray(timesheetData.rejected) ? timesheetData.rejected : Array.isArray(timesheetData) && status === 'Rejected' ? timesheetData : [];
-
     const displayedRows = status === 'Pending' ? pendingList : status === 'Approved' ? approvedList : rejectedList;
 
     const stats = {
         Pending: pendingList.length || 0,
         Approved: approvedList.length || 0,
         Rejected: rejectedList.length || 0,
+    };
+
+    // Load Projects for Filter
+    useEffect(() => {
+        const loadProjects = async () => {
+            try {
+                const { getProjects } = await import('../services/projectService');
+                const response = await getProjects({}, { role: user.role, userId: user.id || user._id });
+                setProjects(Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : []);
+            } catch (err) {
+                console.error("Failed to load projects", err);
+            }
+        };
+        loadProjects();
+    }, [user.role, user.id, user._id]);
+
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
     };
 
     const getText = (value, fallback = 'N/A') => {
@@ -130,35 +164,58 @@ const TimesheetDetails = () => {
 
     return (
         <div className="space-y-6">
-            {/* Filters Row */}
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative">
-                        <select className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-45">
-                            <option>Select Project Type</option>
+                        <select
+                            value={filters.billingType}
+                            onChange={(e) => handleFilterChange('billingType', e.target.value)}
+                            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-45"
+                        >
+                            <option value="">All Project Types</option>
+                            <option value="Billable">Billable</option>
+                            <option value="Non Billable">Non Billable</option>
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
 
                     <div className="relative">
-                        <select className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-45">
-                            <option>Select Project</option>
+                        <select
+                            value={filters.project}
+                            onChange={(e) => handleFilterChange('project', e.target.value)}
+                            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-45"
+                        >
+                            <option value="">All Projects</option>
+                            {projects.map(p => (
+                                <option key={p._id || p.id} value={p._id || p.id}>{p.name}</option>
+                            ))}
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
 
                     <div className="relative">
-                        <select className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-45">
-                            <option>Select Timesheet Type</option>
+                        <select
+                            value={filters.task}
+                            onChange={(e) => handleFilterChange('task', e.target.value)}
+                            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-45"
+                        >
+                            <option value="">All Tasks</option>
+                            {['Development', 'Code Review', 'Meeting', 'Documentation', 'Testing'].map(t => (
+                                <option key={t} value={t}>{t}</option>
+                            ))}
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
 
                     <div className="relative">
-                        <div className="flex items-center gap-2 pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white cursor-pointer hover:bg-gray-50 transition-colors min-w-35">
-                            <Calendar size={16} className="text-gray-400" />
-                            <span>This Month</span>
-                        </div>
+                        <select
+                            value={filters.dateRange}
+                            onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+                            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-45"
+                        >
+                            <option value="All">All Time</option>
+                            <option value="This Month">This Month</option>
+                        </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
                 </div>
@@ -198,8 +255,8 @@ const TimesheetDetails = () => {
                             onChange={() => setShowDescription(!showDescription)}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <span className="text-sm text-gray-600">Show timesheet description</span>
                     </label>
-                    <span className="text-sm text-gray-600">Show timesheet description</span>
                 </div>
             </div>
 
@@ -238,7 +295,7 @@ const TimesheetDetails = () => {
                             <p className="text-sm text-gray-500 mt-1 italic">
                                 {status === 'All'
                                     ? "You haven't added any timesheets yet."
-                                    : `You don't have any ${status.toLowerCase()} timesheets.`}
+                                    : `You don't have any ${status.toLowerCase()} timesheets matching your filters.`}
                             </p>
                         </div>
                     ) : (
@@ -322,7 +379,7 @@ const TimesheetDetails = () => {
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setDetailModal({ open: false, data: null, loading: false })} />
                     <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden animate-scaleIn transform">
                         {/* Gradient header with decorative elements */}
-                        <div className="relative bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 px-8 py-6 overflow-hidden flex-shrink-0">
+                        <div className="relative bg-linear-to-r from-indigo-600 via-indigo-700 to-purple-600 px-8 py-6 overflow-hidden shrink-0">
                             {/* Decorative circles */}
                             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
@@ -352,10 +409,10 @@ const TimesheetDetails = () => {
                             ) : detailModal.data ? (
                                 <div className="space-y-6">
                                     {/* Employee card with gradient */}
-                                    <div className="relative p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl overflow-hidden border border-indigo-100">
+                                    <div className="relative p-6 bg-linear-to-br from-indigo-50 to-purple-50 rounded-2xl overflow-hidden border border-indigo-100">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-200/20 rounded-full blur-2xl"></div>
                                         <div className="relative flex items-center gap-5">
-                                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-indigo-500/30">
+                                            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-indigo-500/30">
                                                 {(detailModal.data.employeeName || 'E').charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex-1">
@@ -402,7 +459,7 @@ const TimesheetDetails = () => {
                                             </p>
                                             <p className="text-indigo-700 font-black text-lg">{formatField(detailModal.data.hours)}</p>
                                         </div>
-                                        <div className="col-span-2 p-4 bg-gradient-to-br from-gray-50 to-indigo-50/30 rounded-xl border border-gray-100">
+                                        <div className="col-span-2 p-4 bg-linear-to-br from-gray-50 to-indigo-50/30 rounded-xl border border-gray-100">
                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
                                                 Billing Type
@@ -413,7 +470,7 @@ const TimesheetDetails = () => {
 
                                     {/* Description section */}
                                     {detailModal.data.description && (
-                                        <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50/30 rounded-xl border border-amber-100">
+                                        <div className="p-5 bg-linear-to-br from-amber-50 to-orange-50/30 rounded-xl border border-amber-100">
                                             <p className="text-xs text-amber-700 font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
                                                 Description
