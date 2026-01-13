@@ -35,7 +35,8 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, setIsCollapsed, 
                                                 location.pathname === '/projects/create' ? 'Create Project' :
                                                     location.pathname.startsWith('/projects/') ? 'Project Details' :
                                                         location.pathname === '/timesheet/add' ? 'Add Timesheet' :
-                                                            location.pathname === '/timesheet/details' ? 'All Timesheets' : 'Dashboard'}
+                                                            location.pathname === '/timesheet/details' ? 'All Timesheets' :
+                                                                location.pathname === '/work-from-home' ? 'Work From Home' : 'Dashboard'}
                 </h2>
             </div>
 

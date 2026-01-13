@@ -202,7 +202,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                             </div>
                         )}
 
-                        <SidebarLink icon={Home} label="Work From Home" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={Home} label="Work From Home" to="/work-from-home" active={location.pathname === '/work-from-home'} collapsed={isCollapsed} />
                         <SidebarItem icon={BarChart2} label="KPI" hasSubmenu collapsed={isCollapsed} />
                         <SidebarLink icon={Megaphone} label="Announcements" to="#" collapsed={isCollapsed} />
                         <SidebarLink icon={Info} label="Notice and Appreciation" to="#" collapsed={isCollapsed} />
