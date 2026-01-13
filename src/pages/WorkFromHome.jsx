@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Plus, Eye, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import WorkFromHomeModal from '../components/modals/WorkFromHomeModal';
+import WFHDetailModal from '../components/modals/WFHDetailModal';
 
 import { useGetWfhRequestsQuery } from '../store/api/wfhApi';
 
 const WorkFromHome = () => {
     const [activeTab, setActiveTab] = useState('Expired');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedRequest, setSelectedRequest] = useState(null);
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const { data: allRequests = [], isLoading, error } = useGetWfhRequestsQuery(user._id || user.id, {
@@ -41,6 +44,11 @@ const WorkFromHome = () => {
         const diffTime = Math.abs(endDate - startDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         return diffDays;
+    };
+
+    const handleViewDetails = (request) => {
+        setSelectedRequest(request);
+        setIsDetailModalOpen(true);
     };
 
     return (
@@ -104,7 +112,10 @@ const WorkFromHome = () => {
                                         <td className="py-4 text-sm text-gray-600">{formatDate(request.createdAt || request.appliedDate)}</td>
                                         <td className="py-4 text-sm text-gray-500 capitalize">{request.status}</td>
                                         <td className="py-4">
-                                            <button className="text-indigo-600 hover:text-indigo-800 transition-colors">
+                                            <button
+                                                onClick={() => handleViewDetails(request)}
+                                                className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                                            >
                                                 <Eye size={18} />
                                             </button>
                                         </td>
@@ -130,6 +141,7 @@ const WorkFromHome = () => {
             </div>
 
             <WorkFromHomeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <WFHDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} data={selectedRequest} />
         </div>
     );
 };
