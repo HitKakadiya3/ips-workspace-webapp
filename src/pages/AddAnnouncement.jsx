@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Megaphone, Type, FileText, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Save, Megaphone, Type, FileText, Paperclip, X, CheckCircle2 } from 'lucide-react';
+import { createAnnouncement } from '../services/announcementService';
 
 const AddAnnouncement = () => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ const AddAnnouncement = () => {
     });
 
     const [loading, setLoading] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -22,18 +24,19 @@ const AddAnnouncement = () => {
         setFormData(prev => ({ ...prev, attachment: e.target.files[0] }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        // Mock API call
-        console.log('Submitting Announcement:', formData);
-
-        setTimeout(() => {
+        try {
+            await createAnnouncement(formData);
+            setShowSuccessModal(true);
+        } catch (error) {
+            console.error('Error creating announcement:', error);
+            alert('Failed to create announcement. Please try again.');
+        } finally {
             setLoading(false);
-            alert('Announcement created successfully!');
-            navigate('/announcements');
-        }, 1500);
+        }
     };
 
     return (
@@ -171,6 +174,33 @@ const AddAnnouncement = () => {
                     </div>
                 </form>
             </div>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                    <div
+                        className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm animate-fadeIn"
+                        onClick={() => navigate('/announcements')}
+                    />
+                    <div className="relative bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center animate-scaleIn">
+                        <div className="flex justify-center mb-6">
+                            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center animate-bounce">
+                                <CheckCircle2 size={48} className="text-green-500" />
+                            </div>
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Success!</h3>
+                        <p className="text-gray-500 mb-8">
+                            Your announcement has been posted successfully to the organization.
+                        </p>
+                        <button
+                            onClick={() => navigate('/announcements')}
+                            className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
+                        >
+                            Back to Announcements
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

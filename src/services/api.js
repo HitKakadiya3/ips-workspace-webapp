@@ -2,7 +2,7 @@ import axios from 'axios';
 import store from '../store/store';
 import { updateToken, logout } from '../store/slices/authSlice';
 
-const BASE_URL = 'http://localhost:5000';
+export const BASE_URL = 'http://localhost:5000';
 
 // Create axios instance for auth endpoints
 const authApi = axios.create({
