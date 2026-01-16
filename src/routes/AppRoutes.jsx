@@ -18,7 +18,8 @@ import Unauthorized from '../pages/Unauthorized';
 import AdminApproveTimesheet from '../pages/AdminApproveTimesheet';
 import WorkFromHome from '../pages/WorkFromHome';
 import AdminWorkFromHome from '../pages/AdminWorkFromHome';
-
+import Announcements from '../pages/Announcements';
+import AddAnnouncement from '../pages/AddAnnouncement';
 
 
 import ProtectedRoute from '../components/auth/ProtectedRoute';
@@ -69,6 +70,12 @@ const AppRoutes = () => {
                 <Route path="/admin/approve-timesheets" element={<AdminApproveTimesheet />} />
                 <Route path="/admin/wfh-approval" element={<RoleRoute allowedRoles={['Admin']}><AdminWorkFromHome /></RoleRoute>} />
                 <Route path="/work-from-home" element={<WorkFromHome />} />
+                <Route path="/announcements" element={<Announcements />} />
+                <Route path="/announcements/add" element={
+                    <RoleRoute allowedRoles={['Admin']}>
+                        <AddAnnouncement />
+                    </RoleRoute>
+                } />
             </Route>
             <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>

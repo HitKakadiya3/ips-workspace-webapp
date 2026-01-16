@@ -208,7 +208,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                             <SidebarLink icon={CheckCircle2} label="WFH Approvals" to="/admin/wfh-approval" active={location.pathname === '/admin/wfh-approval'} collapsed={isCollapsed} />
                         )}
                         <SidebarItem icon={BarChart2} label="KPI" hasSubmenu collapsed={isCollapsed} />
-                        <SidebarLink icon={Megaphone} label="Announcements" to="#" collapsed={isCollapsed} />
+                        <SidebarLink icon={Megaphone} label="Announcements" to="/announcements" active={location.pathname === '/announcements'} collapsed={isCollapsed} />
                         <SidebarLink icon={Info} label="Notice and Appreciation" to="#" collapsed={isCollapsed} />
                         <SidebarLink icon={Ticket} label="Tickets" to="#" collapsed={isCollapsed} />
                     </nav>
