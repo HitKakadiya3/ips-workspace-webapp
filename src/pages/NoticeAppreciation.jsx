@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Eye, Search, Filter, RotateCcw, Calendar, ChevronDown, Info, Megaphone, Heart, Loader2, AlertCircle } from 'lucide-react';
 import { useGetNoticeAppreciationsQuery } from '../store/api/noticeAppreciationApi';
+import NoticeAppreciationDetailModal from '../components/modals/NoticeAppreciationDetailModal';
 
 const NoticeAppreciation = () => {
     const [page, setPage] = useState(1);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [filters, setFilters] = useState({
         type: '',
         subType: '',
@@ -24,6 +27,11 @@ const NoticeAppreciation = () => {
     const handleFilterChange = (newFilters) => {
         setFilters(newFilters);
         setPage(1);
+    };
+
+    const handleViewDetails = (item) => {
+        setSelectedItem(item);
+        setIsModalOpen(true);
     };
 
     const listData = data?.data || [];
@@ -162,7 +170,10 @@ const NoticeAppreciation = () => {
                                             {new Date(item.date).toLocaleDateString('en-GB')}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all group/btn">
+                                            <button
+                                                onClick={() => handleViewDetails(item)}
+                                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all group/btn"
+                                            >
                                                 <Eye size={18} className="group-hover/btn:scale-110 transition-transform" />
                                             </button>
                                         </td>
@@ -195,6 +206,13 @@ const NoticeAppreciation = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Details Modal */}
+            <NoticeAppreciationDetailModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                data={selectedItem}
+            />
         </div>
     );
 };
