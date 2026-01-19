@@ -45,7 +45,9 @@ const Announcements = () => {
     const handleAttachmentClick = (attachmentPath) => {
         if (!attachmentPath || attachmentPath === '-') return;
 
-        const url = attachmentPath.startsWith('http') ? attachmentPath : `${BASE_URL}/${attachmentPath}`;
+        // Ensure BASE_URL and attachmentPath are joined with exactly one slash
+        const cleanPath = attachmentPath.startsWith('/') ? attachmentPath.slice(1) : attachmentPath;
+        const url = attachmentPath.startsWith('http') ? attachmentPath : `${BASE_URL}/${cleanPath}`;
 
         const extension = attachmentPath.split('.').pop().toLowerCase();
         const openInTabExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
@@ -309,7 +311,7 @@ const Announcements = () => {
 
             {/* Delete Confirmation Modal */}
             {announcementToDelete && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
                     <div
                         className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm animate-fadeIn"
                         onClick={() => !isDeleting && setAnnouncementToDelete(null)}

@@ -209,7 +209,13 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, openMenus, togg
                         )}
                         <SidebarItem icon={BarChart2} label="KPI" hasSubmenu collapsed={isCollapsed} />
                         <SidebarLink icon={Megaphone} label="Announcements" to="/announcements" active={location.pathname === '/announcements'} collapsed={isCollapsed} />
-                        <SidebarLink icon={Info} label="Notice and Appreciation" to="#" collapsed={isCollapsed} />
+                        <SidebarLink
+                            icon={Info}
+                            label="Notice and Appreciation"
+                            to="/notice-appreciation"
+                            active={location.pathname === '/notice-appreciation'}
+                            collapsed={isCollapsed}
+                        />
                         <SidebarLink icon={Ticket} label="Tickets" to="#" collapsed={isCollapsed} />
                     </nav>
                 </div>

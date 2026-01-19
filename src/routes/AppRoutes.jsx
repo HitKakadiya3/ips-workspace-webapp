@@ -20,6 +20,7 @@ import WorkFromHome from '../pages/WorkFromHome';
 import AdminWorkFromHome from '../pages/AdminWorkFromHome';
 import Announcements from '../pages/Announcements';
 import AddAnnouncement from '../pages/AddAnnouncement';
+import NoticeAppreciation from '../pages/NoticeAppreciation';
 
 
 import ProtectedRoute from '../components/auth/ProtectedRoute';
@@ -76,6 +77,7 @@ const AppRoutes = () => {
                         <AddAnnouncement />
                     </RoleRoute>
                 } />
+                <Route path="/notice-appreciation" element={<NoticeAppreciation />} />
             </Route>
             <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
