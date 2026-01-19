@@ -6,6 +6,7 @@ import { leaveApi } from './api/leaveApi';
 import { documentApi } from './api/documentApi';
 import { timesheetApi } from './api/timesheetApi';
 import { wfhApi } from './api/wfhApi';
+import { noticeAppreciationApi } from './api/noticeAppreciationApi';
 
 export const store = configureStore({
     reducer: {
@@ -16,9 +17,16 @@ export const store = configureStore({
         [documentApi.reducerPath]: documentApi.reducer,
         [timesheetApi.reducerPath]: timesheetApi.reducer,
         [wfhApi.reducerPath]: wfhApi.reducer,
+        [noticeAppreciationApi.reducerPath]: noticeAppreciationApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(leaveApi.middleware, documentApi.middleware, timesheetApi.middleware, wfhApi.middleware),
+        getDefaultMiddleware().concat(
+            leaveApi.middleware,
+            documentApi.middleware,
+            timesheetApi.middleware,
+            wfhApi.middleware,
+            noticeAppreciationApi.middleware
+        ),
 });
 
 export default store;
