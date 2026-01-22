@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, ChevronRight, ChevronDown, User, LogOut } from 'lucide-react';
+import { Menu, ChevronRight, ChevronDown, User, LogOut, Plus } from 'lucide-react';
 
 const Header = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, setIsCollapsed, user, handleLogout }) => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const isAdmin = user?.role === 'Admin' || user?.role === 'admin';
 
     return (
         <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 z-10 shrink-0">
@@ -24,23 +27,26 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen, isCollapsed, setIsCollapsed, 
                     {isCollapsed ? <ChevronRight size={18} /> : <div className="transform rotate-180"><ChevronRight size={18} /></div>}
                 </button>
 
-                <h2 className="text-xl font-semibold text-gray-800">
-                    {location.pathname === '/profile' ? 'Profile Details' :
-                        location.pathname === '/leave/apply' ? 'Apply Leave' :
-                            location.pathname === '/leave/details' ? 'Leave Details' :
-                                location.pathname === '/document-sharing' ? 'All Documents' :
-                                    location.pathname === '/admin/leave-approval' ? 'Leave Approvals' :
-                                        location.pathname === '/calendar' ? 'Calendar' :
-                                            location.pathname === '/projects' ? 'Project List' :
-                                                location.pathname === '/projects/create' ? 'Create Project' :
-                                                    location.pathname.startsWith('/projects/') ? 'Project Details' :
-                                                        location.pathname === '/timesheet/add' ? 'Add Timesheet' :
-                                                            location.pathname === '/timesheet/details' ? 'All Timesheets' :
-                                                                location.pathname === '/admin/wfh-approval' ? 'WFH Approvals' :
-                                                                    location.pathname === '/work-from-home' ? 'Work From Home' :
-                                                                        location.pathname === '/announcements' ? 'All Announcements' :
-                                                                            location.pathname === '/notice-appreciation' ? 'Notice and Appreciation Details' : 'Dashboard'}
-                </h2>
+                <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                        {location.pathname === '/profile' ? 'Profile Details' :
+                            location.pathname === '/leave/apply' ? 'Apply Leave' :
+                                location.pathname === '/leave/details' ? 'Leave Details' :
+                                    location.pathname === '/document-sharing' ? 'All Documents' :
+                                        location.pathname === '/admin/leave-approval' ? 'Leave Approvals' :
+                                            location.pathname === '/calendar' ? 'Calendar' :
+                                                location.pathname === '/projects' ? 'Project List' :
+                                                    location.pathname === '/projects/create' ? 'Create Project' :
+                                                        location.pathname.startsWith('/projects/') ? 'Project Details' :
+                                                            location.pathname === '/timesheet/add' ? 'Add Timesheet' :
+                                                                location.pathname === '/timesheet/details' ? 'All Timesheets' :
+                                                                    location.pathname === '/admin/wfh-approval' ? 'WFH Approvals' :
+                                                                        location.pathname === '/work-from-home' ? 'Work From Home' :
+                                                                            location.pathname === '/announcements' ? 'All Announcements' :
+                                                                                location.pathname === '/notice-appreciation' ? 'Notice & Appreciation' :
+                                                                                    location.pathname === '/notice-appreciation/add' ? 'Add Notice & Appreciation' : 'Dashboard'}
+                    </h2>
+                </div>
             </div>
 
             <div className="flex items-center gap-4 relative">

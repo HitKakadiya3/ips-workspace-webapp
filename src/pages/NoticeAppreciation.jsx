@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
-import { Eye, Search, Filter, RotateCcw, Calendar, ChevronDown, Info, Megaphone, Heart, Loader2, AlertCircle } from 'lucide-react';
-import { useGetNoticeAppreciationsQuery } from '../store/api/noticeAppreciationApi';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Eye, Search, Filter, RotateCcw, Calendar, ChevronDown, Info, Megaphone, Heart, Loader2, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { useGetNoticeAppreciationsQuery, useDeleteNoticeAppreciationMutation } from '../store/api/noticeAppreciationApi';
 import NoticeAppreciationDetailModal from '../components/modals/NoticeAppreciationDetailModal';
+import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal';
 
 const NoticeAppreciation = () => {
+    const navigate = useNavigate();
+    const user = useSelector((state) => state.auth.user) || JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = user.role === 'Admin' || user.role === 'admin';
+
     const [page, setPage] = useState(1);
     const [selectedItem, setSelectedItem] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [deleteNoticeAppreciation, { isLoading: isDeleting }] = useDeleteNoticeAppreciationMutation();
     const [filters, setFilters] = useState({
         type: '',
         subType: '',
@@ -32,6 +42,23 @@ const NoticeAppreciation = () => {
     const handleViewDetails = (item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
+    };
+
+    const handleDeleteClick = (item) => {
+        setItemToDelete(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete) return;
+        try {
+            await deleteNoticeAppreciation(itemToDelete._id).unwrap();
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+        } catch (error) {
+            console.error('Failed to delete:', error);
+            alert(error?.data?.message || 'Failed to delete record');
+        }
     };
 
     const listData = data?.data || [];
@@ -64,8 +91,16 @@ const NoticeAppreciation = () => {
                                 onChange={(e) => handleFilterChange({ ...filters, subType: e.target.value })}
                             >
                                 <option value="">Select Sub Type</option>
-                                <option value="Leave">Leave</option>
+                                <option value="Performance">Performance</option>
+                                <option value="Behavior">Behavior</option>
+                                <option value="Teamwork">Teamwork</option>
+                                <option value="Project Delivery">Project Delivery</option>
+                                <option value="Attendance">Attendance</option>
+                                <option value="Policy Violation">Policy Violation</option>
                                 <option value="Timesheet">Timesheet</option>
+                                <option value="Leave">Leave</option>
+                                <option value="Quality">Quality</option>
+                                <option value="Other">Other</option>
                             </select>
                             <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                         </div>
@@ -89,6 +124,16 @@ const NoticeAppreciation = () => {
                             <RotateCcw size={16} />
                             Reset
                         </button>
+
+                        {isAdmin && (
+                            <button
+                                onClick={() => navigate('/notice-appreciation/add')}
+                                className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white font-bold text-sm rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 active:scale-95 ml-auto"
+                            >
+                                <Plus size={16} />
+                                Add Record
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -170,12 +215,22 @@ const NoticeAppreciation = () => {
                                             {new Date(item.date).toLocaleDateString('en-GB')}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => handleViewDetails(item)}
-                                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all group/btn"
-                                            >
-                                                <Eye size={18} className="group-hover/btn:scale-110 transition-transform" />
-                                            </button>
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleViewDetails(item)}
+                                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all group/btn"
+                                                >
+                                                    <Eye size={18} className="group-hover/btn:scale-110 transition-transform" />
+                                                </button>
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={() => handleDeleteClick(item)}
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all group/btn"
+                                                    >
+                                                        <Trash2 size={18} className="group-hover/btn:scale-110 transition-transform" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -207,11 +262,26 @@ const NoticeAppreciation = () => {
                 </div>
             </div>
 
-            {/* Details Modal */}
+            {/* Detail Modal */}
             <NoticeAppreciationDetailModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setSelectedItem(null);
+                }}
                 data={selectedItem}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setItemToDelete(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                title={itemToDelete?.title || `Delete ${itemToDelete?.type || 'Record'} for ${itemToDelete?.user?.name || 'Unknown'}`}
+                isLoading={isDeleting}
             />
         </div>
     );

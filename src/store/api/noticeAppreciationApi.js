@@ -29,9 +29,26 @@ export const noticeAppreciationApi = createApi({
                 pagination: response.pagination || { totalItems: 0, totalPages: 0, currentPage: 1, limit: 10 }
             }),
         }),
+        addNoticeAppreciation: builder.mutation({
+            query: (payload) => ({
+                url: '/api/notice-appreciations',
+                method: 'POST',
+                body: payload,
+            }),
+            invalidatesTags: ['NoticeAppreciation'],
+        }),
+        deleteNoticeAppreciation: builder.mutation({
+            query: (id) => ({
+                url: `/api/notice-appreciations/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['NoticeAppreciation'],
+        }),
     }),
 });
 
 export const {
     useGetNoticeAppreciationsQuery,
+    useAddNoticeAppreciationMutation,
+    useDeleteNoticeAppreciationMutation,
 } = noticeAppreciationApi;

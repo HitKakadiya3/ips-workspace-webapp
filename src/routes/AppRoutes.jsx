@@ -21,7 +21,7 @@ import AdminWorkFromHome from '../pages/AdminWorkFromHome';
 import Announcements from '../pages/Announcements';
 import AddAnnouncement from '../pages/AddAnnouncement';
 import NoticeAppreciation from '../pages/NoticeAppreciation';
-
+import AddNoticeAppreciation from '../pages/AddNoticeAppreciation';
 
 import ProtectedRoute from '../components/auth/ProtectedRoute';
 import PublicRoute from '../components/auth/PublicRoute';
@@ -78,6 +78,11 @@ const AppRoutes = () => {
                     </RoleRoute>
                 } />
                 <Route path="/notice-appreciation" element={<NoticeAppreciation />} />
+                <Route path="/notice-appreciation/add" element={
+                    <RoleRoute allowedRoles={['Admin']}>
+                        <AddNoticeAppreciation />
+                    </RoleRoute>
+                } />
             </Route>
             <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
